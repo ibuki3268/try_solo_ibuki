@@ -1,157 +1,137 @@
 // ゲームロジック
 
-import { MiniGame, GameState, GAME_CONFIG } from '../types/game';
+import { MiniGame, GameState, GAME_CONSTANTS } from '../types/game';
 
 /**
  * 全てのミニゲームの定義
  */
 export const ALL_MINI_GAMES: MiniGame[] = [
   {
-    id: 'game-01',
-    type: 'basic-agree',
-    title: '基本の同意',
+    id: 'basic-agree',
+    name: '基本の同意',
     description: '「同意する」ボタンをクリックしてください',
     difficulty: 1,
   },
   {
-    id: 'game-02',
-    type: 'escape-button',
-    title: '逃げる同意',
+    id: 'escape-button',
+    name: '逃げる同意',
     description: 'マウスから逃げるボタンをクリック！',
     difficulty: 2,
     timeLimit: 30,
   },
   {
-    id: 'game-03',
-    type: 'timing-game',
-    title: 'タイミング同意',
+    id: 'timing-game',
+    name: 'タイミング同意',
     description: 'ゲージが緑の時にクリックしてください',
     difficulty: 2,
   },
   {
-    id: 'game-04',
-    type: 'rapid-click',
-    title: '連打同意',
+    id: 'rapid-click',
+    name: '連打同意',
     description: '時間内に連打してゲージを貯めよう！',
     difficulty: 1,
     timeLimit: 10,
   },
   {
-    id: 'game-05',
-    type: 'slot-machine',
-    title: 'スロット同意',
+    id: 'slot-machine',
+    name: 'スロット同意',
     description: 'スロットを揃えて同意しよう',
     difficulty: 2,
   },
   {
-    id: 'game-06',
-    type: 'slide-puzzle',
-    title: 'スライドパズル',
+    id: 'slide-puzzle',
+    name: 'スライドパズル',
     description: 'パズルを完成させてください',
     difficulty: 3,
     timeLimit: 60,
   },
   {
-    id: 'game-07',
-    type: 'maze',
-    title: '迷路',
+    id: 'maze',
+    name: '迷路',
     description: '迷路をゴールまで進もう',
     difficulty: 2,
     timeLimit: 45,
   },
   {
-    id: 'game-08',
-    type: 'memory-game',
-    title: '記憶力テスト',
+    id: 'memory-game',
+    name: '記憶力テスト',
     description: '表示された順番を記憶してください',
     difficulty: 2,
   },
   {
-    id: 'game-09',
-    type: 'reflex-test',
-    title: '反射神経',
+    id: 'reflex-test',
+    name: '反射神経',
     description: '光ったボタンをすぐにクリック！',
     difficulty: 2,
     timeLimit: 20,
   },
   {
-    id: 'game-10',
-    type: 'math-quiz',
-    title: '計算問題',
+    id: 'math-quiz',
+    name: '計算問題',
     description: '簡単な算数の答えを入力してください',
     difficulty: 1,
     timeLimit: 20,
   },
   {
-    id: 'game-11',
-    type: 'long-press',
-    title: '長押し',
+    id: 'long-press',
+    name: '長押し',
     description: 'ボタンを3秒間長押ししてください',
     difficulty: 1,
   },
   {
-    id: 'game-12',
-    type: 'two-choice-quiz',
-    title: '二択クイズ',
+    id: 'two-choice-quiz',
+    name: '二択クイズ',
     description: '正しい答えを選んでください',
     difficulty: 1,
   },
   {
-    id: 'game-13',
-    type: 'color-match',
-    title: '色合わせ',
+    id: 'color-match',
+    name: '色合わせ',
     description: '指定された色を選択してください',
     difficulty: 1,
   },
   {
-    id: 'game-14',
-    type: 'word-search',
-    title: '文字探し',
+    id: 'word-search',
+    name: '文字探し',
     description: '「同意する」という文字を探してください',
     difficulty: 2,
     timeLimit: 20,
   },
   {
-    id: 'game-15',
-    type: 'drag-drop',
-    title: 'ドラッグ&ドロップ',
+    id: 'drag-drop',
+    name: 'ドラッグ&ドロップ',
     description: '要素を正しい位置に配置してください',
     difficulty: 2,
   },
   {
-    id: 'game-16',
-    type: 'rhythm-game',
-    title: '音ゲー',
+    id: 'rhythm-game',
+    name: '音ゲー',
     description: 'タイミングよくボタンを押そう',
     difficulty: 3,
     timeLimit: 30,
   },
   {
-    id: 'game-17',
-    type: 'dodge-game',
-    title: '避けゲー',
+    id: 'dodge-game',
+    name: '避けゲー',
     description: '障害物を避けながら進もう',
     difficulty: 2,
     timeLimit: 25,
   },
   {
-    id: 'game-18',
-    type: 'clicker',
-    title: 'クリッカー',
+    id: 'clicker',
+    name: 'クリッカー',
     description: '10回クリックしてください',
     difficulty: 1,
   },
   {
-    id: 'game-19',
-    type: 'chess-board',
-    title: 'チェス盤',
+    id: 'chess-board',
+    name: 'チェス盤',
     description: '指定されたマスをクリックしてください',
     difficulty: 2,
   },
   {
-    id: 'game-20',
-    type: 'final-challenge',
-    title: '最終試練',
+    id: 'final-challenge',
+    name: '最終試練',
     description: '複数の挑戦を連続でクリアしよう',
     difficulty: 3,
     timeLimit: 40,
@@ -177,11 +157,12 @@ export function createInitialGameState(): GameState {
   return {
     status: 'idle',
     currentGameIndex: 0,
-    lives: GAME_CONFIG.INITIAL_LIVES,
-    maxLives: GAME_CONFIG.INITIAL_LIVES,
+    currentLife: GAME_CONSTANTS.MAX_LIFE,
+    maxLife: GAME_CONSTANTS.MAX_LIFE,
+    totalGames: GAME_CONSTANTS.TOTAL_GAMES,
+    gameSequence: [],
     clearedGames: [],
     failedAttempts: 0,
-    portfolioUrl: GAME_CONFIG.PORTFOLIO_URL,
   };
 }
 
@@ -196,7 +177,7 @@ export function isAllGamesCleared(state: GameState, totalGames: number): boolean
  * ゲームオーバーかチェック
  */
 export function isGameOver(state: GameState): boolean {
-  return state.lives <= 0;
+  return state.currentLife <= 0;
 }
 
 /**
@@ -226,23 +207,23 @@ export function proceedToNextGame(
  * ゲームに失敗した時の処理
  */
 export function handleGameFailure(state: GameState): GameState {
-  const newLives = state.lives - 1;
+  const newLives = state.currentLife - 1;
   const newFailedAttempts = state.failedAttempts + 1;
 
   if (newLives <= 0) {
     return {
       ...state,
-      lives: newLives,
+      currentLife: newLives,
       failedAttempts: newFailedAttempts,
-      status: 'exploded',
+      status: 'game-over',
     };
   }
 
   return {
     ...state,
-    lives: newLives,
+    currentLife: newLives,
     failedAttempts: newFailedAttempts,
-    status: 'idle', // NFC再読み込み待ちに戻る
+    status: 'waiting-nfc', // NFC再読み込み待ちに戻る
   };
 }
 
@@ -251,7 +232,7 @@ export function handleGameFailure(state: GameState): GameState {
  */
 export function handleGameSuccess(
   state: GameState,
-  gameId: string
+  gameId: MiniGame['id']
 ): GameState {
   return {
     ...state,
