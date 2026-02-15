@@ -151,16 +151,25 @@ export function shuffleGames(games: MiniGame[]): MiniGame[] {
 }
 
 /**
+ * プレイ順のゲーム一覧を作成
+ */
+export function createGameSequence(games: MiniGame[] = ALL_MINI_GAMES): MiniGame[] {
+  return shuffleGames(games).slice(0, GAME_CONSTANTS.TOTAL_GAMES);
+}
+
+/**
  * 初期ゲーム状態を作成
  */
-export function createInitialGameState(): GameState {
+export function createInitialGameState(games: MiniGame[] = ALL_MINI_GAMES): GameState {
+  const gameSequence = createGameSequence(games);
+
   return {
     status: 'idle',
     currentGameIndex: 0,
     currentLife: GAME_CONSTANTS.MAX_LIFE,
     maxLife: GAME_CONSTANTS.MAX_LIFE,
-    totalGames: GAME_CONSTANTS.TOTAL_GAMES,
-    gameSequence: [],
+    totalGames: gameSequence.length,
+    gameSequence,
     clearedGames: [],
     failedAttempts: 0,
   };
@@ -187,9 +196,10 @@ export function proceedToNextGame(
   state: GameState,
   games: MiniGame[]
 ): GameState {
+  const gameList = games.length > 0 ? games : state.gameSequence;
   const nextIndex = state.currentGameIndex + 1;
   
-  if (nextIndex >= games.length) {
+  if (nextIndex >= gameList.length) {
     return {
       ...state,
       status: 'cleared',
@@ -199,6 +209,7 @@ export function proceedToNextGame(
   return {
     ...state,
     currentGameIndex: nextIndex,
+    failedAttempts: 0,
     status: 'playing',
   };
 }
@@ -234,8 +245,12 @@ export function handleGameSuccess(
   state: GameState,
   gameId: MiniGame['id']
 ): GameState {
+  const clearedGames = state.clearedGames.includes(gameId)
+    ? state.clearedGames
+    : [...state.clearedGames, gameId];
+
   return {
     ...state,
-    clearedGames: [...state.clearedGames, gameId],
+    clearedGames,
   };
 }
