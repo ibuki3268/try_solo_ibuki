@@ -13,7 +13,13 @@ export default function MathQuiz({ onSuccess, onFailure, timeLimit = 12 }: MiniG
     const left = Math.floor(Math.random() * 90) + 10;
     const right = Math.floor(Math.random() * 90) + 10;
     const op = OPERATORS[Math.floor(Math.random() * OPERATORS.length)];
-    const result = op === "+" ? left + right : left - right;
+    if (op === "-") {
+      const larger = Math.max(left, right);
+      const smaller = Math.min(left, right);
+      const result = larger - smaller;
+      return { left: larger, right: smaller, op, result };
+    }
+    const result = left + right;
     return { left, right, op, result };
   }, []);
 
