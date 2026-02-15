@@ -25,6 +25,7 @@ export default function LongPress({ onSuccess, onFailure }: MiniGameComponentPro
   const handlePressStart = () => {
     if (doneRef.current) return;
     pressedRef.current = true;
+    if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       finish(true);
     }, HOLD_MS);
