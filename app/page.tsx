@@ -1,65 +1,71 @@
-import Image from "next/image";
+import LifeDisplay from "./components/LifeDisplay";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <div className="relative min-h-screen overflow-hidden bg-slate-950 text-slate-100">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -top-32 left-1/2 h-96 w-[38rem] -translate-x-1/2 rounded-full bg-emerald-500/20 blur-3xl" />
+        <div className="absolute bottom-0 right-0 h-80 w-80 rounded-full bg-amber-400/10 blur-3xl" />
+        <div className="absolute left-0 top-1/3 h-72 w-72 rounded-full bg-sky-400/10 blur-3xl" />
+      </div>
+
+      <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-12 px-6 py-14 sm:px-10 lg:px-16">
+        <header className="flex flex-wrap items-center justify-between gap-6">
+          <div className="flex items-center gap-3">
+            <span className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-400/20 text-2xl">
+              ✔
+            </span>
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-emerald-200/70">
+                Consent Quest
+              </p>
+              <h1 className="text-2xl font-semibold text-white">同意チャレンジ</h1>
+            </div>
+          </div>
+        </header>
+
+        <main className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+          <section className="flex flex-col gap-8">
+            <div className="flex flex-col gap-6">
+              <h2 className="text-4xl font-['Shippori_Mincho_B1'] font-semibold leading-[1.2] text-white sm:text-5xl">
+                ボタンは、素直に押させてくれない。
+              </h2>
+              <p className="max-w-xl text-base leading-7 text-slate-300 sm:text-lg">
+                20種類のミニゲームを突破して「同意する」ボタンへ到達。NFCで挑戦を開始し、すべてをクリアすると
+                ポートフォリオへ遷移します。
+              </p>
+              <p className="text-sm text-emerald-200/80">ポートフォリオを覗きたい人へ。</p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-4">
+              <button className="group inline-flex items-center gap-3 rounded-full bg-emerald-400 px-7 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-emerald-300">
+                NFCで開始する
+                <span className="text-lg transition group-hover:translate-x-1">→</span>
+              </button>
+              <button className="inline-flex items-center gap-2 rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-white/80 transition hover:border-white/60 hover:text-white">
+                NFCがない人はこちら
+              </button>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-6 rounded-2xl border border-white/10 bg-white/5 px-6 py-4">
+              <LifeDisplay current={3} max={3} />
+              <div className="text-sm text-slate-300">
+                成功すると次のゲームへ。
+              </div>
+            </div>
+          </section>
+
+          <section className="flex flex-col gap-6">
+            <div className="rounded-3xl border border-amber-200/20 bg-amber-200/10 p-6">
+              <p className="text-xs uppercase tracking-[0.3em] text-amber-100/80">ルール</p>
+              <ul className="mt-4 space-y-3 text-sm text-amber-50/90">
+                <li>・NFCで挑戦開始（または通常開始）</li>
+                <li>・ミニゲームはランダム順で出題</li>
+              </ul>
+            </div>
+          </section>
+        </main>
+      </div>
     </div>
   );
 }
