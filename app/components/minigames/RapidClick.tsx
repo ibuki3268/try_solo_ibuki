@@ -14,11 +14,20 @@ export default function RapidClick({
   const [timeLeft, setTimeLeft] = useState(timeLimit);
   const doneRef = useRef(false);
   const countRef = useRef(0);
+  const onSuccessRef = useRef(onSuccess);
+  const onFailureRef = useRef(onFailure);
+
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+    onFailureRef.current = onFailure;
+  }, [onSuccess, onFailure]);
 
   const finish = (success: boolean) => {
     if (doneRef.current) return;
     doneRef.current = true;
-    const callback = success ? onSuccess : onFailure ?? (() => {});
+    const callback = success
+      ? onSuccessRef.current
+      : onFailureRef.current ?? (() => {});
     setTimeout(callback, 0);
   };
 
