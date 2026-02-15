@@ -154,7 +154,12 @@ export function shuffleGames(games: MiniGame[]): MiniGame[] {
  * プレイ順のゲーム一覧を作成
  */
 export function createGameSequence(games: MiniGame[] = ALL_MINI_GAMES): MiniGame[] {
-  return shuffleGames(games).slice(0, GAME_CONSTANTS.TOTAL_GAMES);
+  const initial = games.find((game) => game.id === "basic-agree");
+  const rest = games.filter((game) => game.id !== "basic-agree");
+  const shuffled = shuffleGames(rest);
+  const sequence = initial ? [initial, ...shuffled] : shuffled;
+
+  return sequence.slice(0, GAME_CONSTANTS.TOTAL_GAMES);
 }
 
 /**
