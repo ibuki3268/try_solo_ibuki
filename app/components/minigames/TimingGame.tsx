@@ -1,12 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-
-type TimingGameProps = {
-  onSuccess: () => void;
-  onFailure: () => void;
-  timeLimit?: number;
-};
+import { MiniGameComponentProps } from "../../types/game";
 
 const SUCCESS_MIN = 45;
 const SUCCESS_MAX = 55;
@@ -15,7 +10,7 @@ export default function TimingGame({
   onSuccess,
   onFailure,
   timeLimit = 8,
-}: TimingGameProps) {
+}: MiniGameComponentProps) {
   const [position, setPosition] = useState(0);
   const directionRef = useRef(1);
   const doneRef = useRef(false);
@@ -30,7 +25,7 @@ export default function TimingGame({
     if (success) {
       onSuccess();
     } else {
-      onFailure();
+      onFailure?.();
     }
   };
 

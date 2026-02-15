@@ -1,12 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-
-type RapidClickProps = {
-  onSuccess: () => void;
-  onFailure: () => void;
-  timeLimit?: number;
-};
+import { MiniGameComponentProps } from "../../types/game";
 
 const TARGET_CLICKS = 12;
 
@@ -14,7 +9,7 @@ export default function RapidClick({
   onSuccess,
   onFailure,
   timeLimit = 6,
-}: RapidClickProps) {
+}: MiniGameComponentProps) {
   const [count, setCount] = useState(0);
   const [timeLeft, setTimeLeft] = useState(timeLimit);
   const doneRef = useRef(false);
@@ -23,7 +18,7 @@ export default function RapidClick({
   const finish = (success: boolean) => {
     if (doneRef.current) return;
     doneRef.current = true;
-    const callback = success ? onSuccess : onFailure;
+    const callback = success ? onSuccess : onFailure ?? (() => {});
     setTimeout(callback, 0);
   };
 

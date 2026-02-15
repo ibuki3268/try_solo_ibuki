@@ -1,10 +1,8 @@
 "use client";
 
-type BasicAgreeProps = {
-  onSuccess: () => void;
-};
+import { MiniGameComponentProps } from "../../types/game";
 
-export default function BasicAgree({ onSuccess }: BasicAgreeProps) {
+export default function BasicAgree({ onSuccess }: MiniGameComponentProps) {
   return (
     <div className="flex flex-col items-start gap-4">
       <p className="text-sm text-slate-300">

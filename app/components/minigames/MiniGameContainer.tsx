@@ -1,4 +1,5 @@
-import { MiniGame } from "../../types/game";
+import { ComponentType } from "react";
+import { MiniGame, MiniGameComponentProps } from "../../types/game";
 import BasicAgree from "./BasicAgree";
 import RapidClick from "./RapidClick";
 import TimingGame from "./TimingGame";
@@ -26,7 +27,10 @@ export default function MiniGameContainer({
   onSuccess,
   onFailure,
 }: MiniGameContainerProps) {
-  const GameComponent = gameComponentMap[game.id as keyof typeof gameComponentMap];
+  const GameComponent =
+    gameComponentMap[
+      game.id as keyof typeof gameComponentMap
+    ] as ComponentType<MiniGameComponentProps> | undefined;
 
   return (
     <section className="rounded-3xl border border-white/10 bg-white/5 p-6 text-slate-100">
