@@ -120,7 +120,7 @@ export const ALL_MINI_GAMES: MiniGame[] = [
   {
     id: 'clicker',
     name: 'クリッカー',
-    description: '10回クリックしてください',
+    description: '40回クリックしてください',
     difficulty: 1,
   },
   {
@@ -153,20 +153,26 @@ export function shuffleGames(games: MiniGame[]): MiniGame[] {
 /**
  * プレイ順のゲーム一覧を作成
  */
-export function createGameSequence(games: MiniGame[] = ALL_MINI_GAMES): MiniGame[] {
+export function createGameSequence(
+  games: MiniGame[] = ALL_MINI_GAMES,
+  totalGames: number = GAME_CONSTANTS.ACTIVE_GAMES
+): MiniGame[] {
   const initial = games.find((game) => game.id === "basic-agree");
   const rest = games.filter((game) => game.id !== "basic-agree");
   const shuffled = shuffleGames(rest);
   const sequence = initial ? [initial, ...shuffled] : shuffled;
 
-  return sequence.slice(0, GAME_CONSTANTS.TOTAL_GAMES);
+  return sequence.slice(0, totalGames);
 }
 
 /**
  * 初期ゲーム状態を作成
  */
-export function createInitialGameState(games: MiniGame[] = ALL_MINI_GAMES): GameState {
-  const gameSequence = createGameSequence(games);
+export function createInitialGameState(
+  games: MiniGame[] = ALL_MINI_GAMES,
+  totalGames: number = GAME_CONSTANTS.ACTIVE_GAMES
+): GameState {
+  const gameSequence = createGameSequence(games, totalGames);
 
   return {
     status: 'idle',

@@ -1,7 +1,12 @@
 import { ComponentType } from "react";
 import { MiniGame, MiniGameComponentProps } from "../../types/game";
 import BasicAgree from "./BasicAgree";
+import Clicker from "./Clicker";
+import ColorMatch from "./ColorMatch";
+import LongPress from "./LongPress";
+import MathQuiz from "./MathQuiz";
 import RapidClick from "./RapidClick";
+import TwoChoiceQuiz from "./TwoChoiceQuiz";
 import TimingGame from "./TimingGame";
 
 type MiniGameContainerProps = {
@@ -17,6 +22,11 @@ type MiniGameContainerProps = {
 
 const gameComponentMap = {
   "basic-agree": BasicAgree,
+  "long-press": LongPress,
+  "clicker": Clicker,
+  "math-quiz": MathQuiz,
+  "two-choice-quiz": TwoChoiceQuiz,
+  "color-match": ColorMatch,
   "rapid-click": RapidClick,
   "timing-game": TimingGame,
 } as const;
