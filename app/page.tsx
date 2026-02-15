@@ -1,3 +1,4 @@
+import Link from "next/link";
 import LifeDisplay from "./components/LifeDisplay";
 
 export default function Home() {
@@ -38,13 +39,19 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-              <button className="group inline-flex w-full items-center justify-center gap-3 rounded-full bg-emerald-400 px-7 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-emerald-300 sm:w-auto">
+              <Link
+                href="/game?mode=nfc"
+                className="group inline-flex w-full items-center justify-center gap-3 rounded-full bg-emerald-400 px-7 py-3 text-sm font-semibold text-slate-950 transition hover:-translate-y-0.5 hover:bg-emerald-300 sm:w-auto"
+              >
                 NFCで開始する
                 <span className="text-lg transition group-hover:translate-x-1">→</span>
-              </button>
-              <button className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-white/80 transition hover:border-white/60 hover:text-white sm:w-auto">
+              </Link>
+              <Link
+                href="/game?mode=normal"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-white/80 transition hover:border-white/60 hover:text-white sm:w-auto"
+              >
                 NFCがない人はこちら
-              </button>
+              </Link>
             </div>
 
             <div className="flex flex-col items-start gap-4 rounded-2xl border border-white/10 bg-white/5 px-5 py-4 sm:flex-row sm:items-center sm:gap-6 sm:px-6">

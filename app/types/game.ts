@@ -76,6 +76,15 @@ export interface GameResult {
 }
 
 /**
+ * ミニゲーム共通のprops
+ */
+export type MiniGameComponentProps = {
+  onSuccess: () => void;
+  onFailure?: () => void;
+  timeLimit?: number;
+};
+
+/**
  * ゲーム設定定数
  */
 export const GAME_CONSTANTS = {
