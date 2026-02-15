@@ -8,18 +8,23 @@ import {
   handleGameSuccess,
   proceedToNextGame,
 } from "../lib/gameLogic";
-import { MiniGame } from "../types/game";
+import { GAME_CONSTANTS, MiniGameType } from "../types/game";
 import LifeDisplay from "./LifeDisplay";
 import MiniGameContainer from "./minigames/MiniGameContainer";
 
-const ACTIVE_GAME_IDS: MiniGame["id"][] = [
+const IMPLEMENTED_GAME_IDS: MiniGameType[] = [
   "basic-agree",
   "rapid-click",
   "timing-game",
+  "long-press",
+  "clicker",
+  "math-quiz",
+  "two-choice-quiz",
+  "color-match",
 ];
 
 const ACTIVE_GAMES = ALL_MINI_GAMES.filter((game) =>
-  ACTIVE_GAME_IDS.includes(game.id)
+  IMPLEMENTED_GAME_IDS.includes(game.id)
 );
 
 const consentArticles = [
@@ -30,7 +35,7 @@ const consentArticles = [
       "(1) 利用者は本ゲームを楽しむ姿勢で臨みます。",
       "(2) 利用者はクリア後に到達するポートフォリオが突貫のしょぼい物でも、苦言を呈さないと誓います。",
       "(3) 利用者は途中で不機嫌にならず、最後まで同意の姿勢を保ちます。",
-      "(4) 利用者は必ず利用規約を読みます。",
+      "(4) 利用者は必ず以後の利用規約を読みます。",
     ],
   },
   {
@@ -56,7 +61,9 @@ const consentArticles = [
 ];
 
 export default function GameManager() {
-  const [state, setState] = useState(() => createInitialGameState(ACTIVE_GAMES));
+  const [state, setState] = useState(() =>
+    createInitialGameState(ACTIVE_GAMES, GAME_CONSTANTS.ACTIVE_GAMES)
+  );
   const currentGame = state.gameSequence[state.currentGameIndex];
   const consentArticle = consentArticles[state.currentGameIndex] ?? null;
   const progress = Math.min(state.currentGameIndex + 1, state.totalGames);
@@ -70,7 +77,7 @@ export default function GameManager() {
   };
 
   const resetGame = () => {
-    setState(createInitialGameState(ACTIVE_GAMES));
+    setState(createInitialGameState(ACTIVE_GAMES, GAME_CONSTANTS.ACTIVE_GAMES));
   };
 
   const handleSuccess = () => {

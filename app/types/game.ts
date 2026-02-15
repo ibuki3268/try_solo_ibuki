@@ -90,6 +90,7 @@ export type MiniGameComponentProps = {
 export const GAME_CONSTANTS = {
   MAX_LIFE: 3,              // 最大ライフ数
   TOTAL_GAMES: 20,          // ゲーム総数
+  ACTIVE_GAMES: 10,         // 1プレイあたりの出題数
   DEFAULT_TIME_LIMIT: 30,   // デフォルト制限時間（秒）
   PORTFOLIO_URL: 'https://portfolio-nine-green-82.vercel.app/', // ポートフォリオURL
 } as const;
