@@ -14,11 +14,13 @@ import MiniGameContainer from "./minigames/MiniGameContainer";
 
 const IMPLEMENTED_GAME_IDS: MiniGameType[] = [
   "basic-agree",
+  "escape-button",
   "rapid-click",
   "timing-game",
   "long-press",
   "clicker",
   "math-quiz",
+  "memory-game",
   "two-choice-quiz",
   "color-match",
 ];
