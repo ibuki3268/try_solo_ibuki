@@ -13,6 +13,7 @@ import TwoChoiceQuiz from "./TwoChoiceQuiz";
 import TimingGame from "./TimingGame";
 import WordSearch from "./WordSearch";
 import DragDrop from "./DragDrop";
+import Maze from "./Maze";
 
 type MiniGameContainerProps = {
   game: MiniGame;
@@ -39,6 +40,7 @@ const gameComponentMap = {
   "timing-game": TimingGame,
   "word-search": WordSearch,
   "drag-drop": DragDrop,
+  "maze": Maze,
 } as const;
 
 export default function MiniGameContainer({

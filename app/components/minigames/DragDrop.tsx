@@ -38,14 +38,14 @@ export default function DragDrop({ onSuccess, onFailure }: MiniGameComponentProp
           onDragStart={(e) => e.dataTransfer.setData('text', 'correct')}
           className="w-20 h-20 bg-blue-500 text-white flex items-center justify-center cursor-grab"
         >
-          正解
+          同意
         </div>
         <div
           draggable
           onDragStart={(e) => e.dataTransfer.setData('text', 'wrong')}
           className="w-20 h-20 bg-red-500 text-white flex items-center justify-center cursor-grab"
         >
-          不正解
+          不同意
         </div>
       </div>
 

@@ -26,6 +26,7 @@ const IMPLEMENTED_GAME_IDS: MiniGameType[] = [
   "color-match",
   "word-search",
   "drag-drop",
+  "maze",
 ];
 
 const ACTIVE_GAMES = ALL_MINI_GAMES.filter((game) =>
