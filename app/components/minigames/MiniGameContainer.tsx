@@ -11,6 +11,7 @@ import RapidClick from "./RapidClick";
 import ReflexTest from "./ReflexTest";
 import TwoChoiceQuiz from "./TwoChoiceQuiz";
 import TimingGame from "./TimingGame";
+import WordSearch from "./WordSearch";
 
 type MiniGameContainerProps = {
   game: MiniGame;
@@ -35,6 +36,7 @@ const gameComponentMap = {
   "color-match": ColorMatch,
   "rapid-click": RapidClick,
   "timing-game": TimingGame,
+  "word-search": WordSearch,
 } as const;
 
 export default function MiniGameContainer({

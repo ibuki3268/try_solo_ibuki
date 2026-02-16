@@ -24,6 +24,7 @@ const IMPLEMENTED_GAME_IDS: MiniGameType[] = [
   "reflex-test",
   "two-choice-quiz",
   "color-match",
+  "word-search",
 ];
 
 const ACTIVE_GAMES = ALL_MINI_GAMES.filter((game) =>
