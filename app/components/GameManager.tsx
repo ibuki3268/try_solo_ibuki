@@ -14,13 +14,20 @@ import MiniGameContainer from "./minigames/MiniGameContainer";
 
 const IMPLEMENTED_GAME_IDS: MiniGameType[] = [
   "basic-agree",
+  "escape-button",
   "rapid-click",
   "timing-game",
   "long-press",
   "clicker",
   "math-quiz",
+  "memory-game",
+  "reflex-test",
   "two-choice-quiz",
   "color-match",
+  "word-search",
+  "drag-drop",
+  "maze",
+  "slot-machine",
 ];
 
 const ACTIVE_GAMES = ALL_MINI_GAMES.filter((game) =>
