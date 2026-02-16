@@ -15,22 +15,29 @@ export default function SlotMachine({ onSuccess, onFailure }: MiniGameComponentP
   const symbols = ["🍒", "🍋", "🍊", "⭐", "🍇"];
 
   const stopSlot = (index: number) => {
+    clearInterval(intervalsRef.current[index]); // 指定されたスロットのインターバルをクリア
+    delete intervalsRef.current[index]; // リセット
+
     setIsSpinning((prev) => {
       const newSpinning = [...prev];
       newSpinning[index] = false;
       return newSpinning;
     });
+
+    // 全スロットが停止している場合、タイムアウトもクリア
+    if (isSpinning.every((spinning) => !spinning)) {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    }
   };
 
   const spinSlots = () => {
-    const intervals = useRef<(number | NodeJS.Timeout)[]>([]); // 型をnumber | NodeJS.Timeout[]に修正
-    const latestSlots = useRef(slots); // 最新のスロット状態を保持するref
+    if (isSpinning.every((spinning) => spinning)) return; // ダブルスピンを防止
 
     setIsSpinning([true, true, true]); // 各スロットを回転状態に設定
 
     // 既存のインターバルをクリア
-    intervals.current.forEach((interval) => clearInterval(interval));
-    intervals.current = []; // リセット
+    intervalsRef.current.forEach((interval) => clearInterval(interval));
+    intervalsRef.current = []; // リセット
 
     // 固定のインデックス配列を使用してインターバルを作成
     [0, 1, 2].forEach((index) => {
@@ -38,21 +45,21 @@ export default function SlotMachine({ onSuccess, onFailure }: MiniGameComponentP
         setSlots((prev) => {
           const newSlots = [...prev];
           newSlots[index] = getRandomSymbol();
-          latestSlots.current = newSlots; // 最新のスロット状態を更新
+          latestSlotsRef.current = newSlots; // 最新のスロット状態を更新
           return newSlots;
         });
       }, 300); // スロットの回転速度を遅くする
-      intervals.current.push(intervalId); // 修正済み型でプッシュ
+      intervalsRef.current.push(intervalId); // 修正済み型でプッシュ
     });
 
-    setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
       // すべてのインターバルをクリア
-      intervals.current.forEach((interval) => clearInterval(interval));
-      intervals.current = []; // リセット
+      intervalsRef.current.forEach((interval) => clearInterval(interval));
+      intervalsRef.current = []; // リセット
 
       setIsSpinning([false, false, false]); // 全スロットを停止状態に設定
 
-      const finalSlots = latestSlots.current; // 最新のスロット状態を取得
+      const finalSlots = latestSlotsRef.current; // 最新のスロット状態を取得
       if (finalSlots[0] === finalSlots[1] && finalSlots[1] === finalSlots[2]) {
         setResult("win");
         onSuccess();
@@ -64,7 +71,10 @@ export default function SlotMachine({ onSuccess, onFailure }: MiniGameComponentP
   };
 
   useEffect(() => {
-    // このuseEffectを削除し、結果判定をspinSlotsに一本化
+    return () => {
+      intervalsRef.current.forEach((interval) => clearInterval(interval));
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
   }, []);
 
   const getRandomSymbol = () => {
@@ -118,4 +128,8 @@ export default function SlotMachine({ onSuccess, onFailure }: MiniGameComponentP
       )}
     </div>
   );
+
+  const intervalsRef = useRef<(number | NodeJS.Timeout)[]>([]); // インターバルIDを保持するref
+  const latestSlotsRef = useRef(slots); // 最新のスロット状態を保持するref
+  const timeoutRef = useRef<number | NodeJS.Timeout | null>(null); // タイムアウトIDを保持するref
 }
