@@ -9,14 +9,19 @@ import type { MiniGameComponentProps } from '@/app/types/game';
  */
 export default function Maze({ onSuccess, onFailure }: MiniGameComponentProps) {
   const [playerPosition, setPlayerPosition] = useState({ x: 0, y: 0 });
-  const goalPosition = { x: 4, y: 4 };
+  const goalPosition = { x: 9, y: 9 };
 
   const maze = [
-    [0, 0, 1, 0, 0],
-    [1, 0, 1, 0, 1],
-    [0, 0, 0, 0, 0],
-    [0, 1, 1, 1, 0],
-    [0, 0, 0, 1, 0],
+    [0, 1, 1, 0, 0, 0, 1, 0, 0, 0],
+    [0, 0, 1, 0, 1, 0, 1, 0, 1, 0],
+    [1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+    [0, 1, 1, 1, 1, 1, 1, 0, 1, 0],
+    [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+    [0, 1, 1, 1, 1, 0, 1, 1, 1, 0],
+    [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+    [1, 1, 1, 0, 1, 1, 1, 1, 1, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+    [0, 1, 1, 1, 1, 1, 1, 0, 0, 0],
   ];
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -27,6 +32,8 @@ export default function Maze({ onSuccess, onFailure }: MiniGameComponentProps) {
       if (e.key === 'ArrowLeft') newPosition.x -= 1;
       if (e.key === 'ArrowRight') newPosition.x += 1;
 
+      console.log(`Key pressed: ${e.key}, New Position:`, newPosition);
+
       // 境界チェック
       if (
         newPosition.x < 0 ||
@@ -35,6 +42,7 @@ export default function Maze({ onSuccess, onFailure }: MiniGameComponentProps) {
         newPosition.y >= maze.length ||
         maze[newPosition.y][newPosition.x] === 1
       ) {
+        console.log('Invalid move');
         return prev; // 無効な移動は無視
       }
 
@@ -61,15 +69,16 @@ export default function Maze({ onSuccess, onFailure }: MiniGameComponentProps) {
       <h2 className="text-2xl font-bold">迷路ゲーム</h2>
       <p className="text-sm text-gray-400">矢印キーでキャラクターをゴールまで移動させてください。</p>
 
-      <div className="grid grid-cols-5 gap-1">
+      <div className="grid grid-cols-10 gap-1">
         {maze.map((row, y) =>
           row.map((cell, x) => (
             <div
               key={`${x}-${y}`}
               className={`w-10 h-10 flex items-center justify-center border
-                ${playerPosition.x === x && playerPosition.y === y ? 'bg-blue-500' : ''}
+                ${playerPosition.x === x && playerPosition.y === y ? 'bg-blue-500 text-white font-bold animate-bounce' : ''}
                 ${cell === 1 ? 'bg-gray-700' : 'bg-gray-300'}`}
             >
+              {playerPosition.x === x && playerPosition.y === y ? '🟢' : ''}
               {goalPosition.x === x && goalPosition.y === y && '🏁'}
             </div>
           ))
