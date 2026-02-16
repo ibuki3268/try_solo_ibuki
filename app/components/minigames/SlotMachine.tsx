@@ -17,6 +17,8 @@ export default function SlotMachine({ onSuccess, onFailure }: MiniGameComponentP
   // refs: ここで一度だけ宣言
   const intervalsRef = useRef<(number | NodeJS.Timeout)[]>([]);
   const latestSlotsRef = useRef(slots);
+  const hasSpunRef = useRef(false);
+  const resultTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const stopSlot = (index: number) => {
     const id = intervalsRef.current[index];
@@ -24,25 +26,19 @@ export default function SlotMachine({ onSuccess, onFailure }: MiniGameComponentP
     delete intervalsRef.current[index];
 
     setIsSpinning((prev) => {
-      const next = [...prev];
-      next[index] = false;
-      
-      // 全スロット停止したか確認（state更新後の値でチェック）
-      if (next.every((s) => !s)) {
-        // 全停止したので結果判定
-        setTimeout(() => {
-          const finalSlots = latestSlotsRef.current;
-          if (finalSlots[0] === finalSlots[1] && finalSlots[1] === finalSlots[2]) {
-            setResult('win');
-            onSuccess();
-          } else {
-            setResult('lose');
-            onFailure?.();
-          }
-        }, 100);
+      const newSpinning = [...prev];
+      newSpinning[index] = false;
+
+      // Check against newSpinning, not pre-update state
+      if (newSpinning.every((s) => !s)) {
+        // All stopped - clear the timeout
+        if (resultTimeoutRef.current) {
+          clearTimeout(resultTimeoutRef.current);
+          resultTimeoutRef.current = null;
+        }
       }
-      
-      return next;
+
+      return newSpinning;
     });
   };
 
@@ -52,9 +48,15 @@ export default function SlotMachine({ onSuccess, onFailure }: MiniGameComponentP
     setResult(null);
     setIsSpinning([true, true, true]);
 
+    // Clear any existing timeout from previous spin
+    if (resultTimeoutRef.current) {
+      clearTimeout(resultTimeoutRef.current);
+      resultTimeoutRef.current = null;
+    }
+
     // 既存インターバルをクリア
     intervalsRef.current.forEach((id) => clearInterval(id as any));
-    intervalsRef.current = [] as any;
+    intervalsRef.current = [];
 
     [0, 1, 2].forEach((index) => {
       const intervalId = setInterval(() => {
@@ -69,7 +71,32 @@ export default function SlotMachine({ onSuccess, onFailure }: MiniGameComponentP
     });
     
     // タイムアウトは削除 - 手動停止のみで結果判定
+    hasSpunRef.current = true;
   };
+
+  // isSpinning状態を監視して、全停止時に結果判定を実行
+  useEffect(() => {
+    if (!hasSpunRef.current) return; // 初回レンダリングは無視
+
+    const allStopped = isSpinning.every((s) => !s);
+    if (allStopped) {
+      // 全スロット停止 - 結果判定を実行
+      resultTimeoutRef.current = setTimeout(() => {
+        const finalSlots = latestSlotsRef.current;
+        if (finalSlots[0] === finalSlots[1] && finalSlots[1] === finalSlots[2]) {
+          setResult('win');
+          onSuccess();
+        } else {
+          setResult('lose');
+          onFailure?.();
+        }
+      }, 100);
+    }
+
+    return () => {
+      if (resultTimeoutRef.current) clearTimeout(resultTimeoutRef.current);
+    };
+  }, [isSpinning, onSuccess, onFailure]);
 
   useEffect(() => {
     return () => {
@@ -103,7 +130,7 @@ export default function SlotMachine({ onSuccess, onFailure }: MiniGameComponentP
         ))}
       </div>
 
-      <button onClick={spinSlots} className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">スロット回転</button>
+      <button onClick={spinSlots} disabled={isSpinning.some((s) => s)} className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:bg-gray-500 disabled:cursor-not-allowed">スロット回転</button>
 
       {result && (
         <div className={`text-xl font-bold mt-4 ${result === 'win' ? 'text-green-500' : 'text-red-500'}`}>
