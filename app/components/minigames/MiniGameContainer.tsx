@@ -8,6 +8,7 @@ import LongPress from "./LongPress";
 import MathQuiz from "./MathQuiz";
 import MemoryGame from "./MemoryGame";
 import RapidClick from "./RapidClick";
+import ReflexTest from "./ReflexTest";
 import TwoChoiceQuiz from "./TwoChoiceQuiz";
 import TimingGame from "./TimingGame";
 
@@ -29,6 +30,7 @@ const gameComponentMap = {
   "clicker": Clicker,
   "math-quiz": MathQuiz,
   "memory-game": MemoryGame,
+  "reflex-test": ReflexTest,
   "two-choice-quiz": TwoChoiceQuiz,
   "color-match": ColorMatch,
   "rapid-click": RapidClick,

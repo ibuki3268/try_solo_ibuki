@@ -21,6 +21,7 @@ const IMPLEMENTED_GAME_IDS: MiniGameType[] = [
   "clicker",
   "math-quiz",
   "memory-game",
+  "reflex-test",
   "two-choice-quiz",
   "color-match",
 ];
