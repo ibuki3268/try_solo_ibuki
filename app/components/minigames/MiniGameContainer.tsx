@@ -12,6 +12,7 @@ import ReflexTest from "./ReflexTest";
 import TwoChoiceQuiz from "./TwoChoiceQuiz";
 import TimingGame from "./TimingGame";
 import WordSearch from "./WordSearch";
+import DragDrop from "./DragDrop";
 
 type MiniGameContainerProps = {
   game: MiniGame;
@@ -37,6 +38,7 @@ const gameComponentMap = {
   "rapid-click": RapidClick,
   "timing-game": TimingGame,
   "word-search": WordSearch,
+  "drag-drop": DragDrop,
 } as const;
 
 export default function MiniGameContainer({
