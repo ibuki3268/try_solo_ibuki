@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { MiniGameComponentProps } from '@/app/types/game';
 
 /**
@@ -23,29 +23,37 @@ export default function SlotMachine({ onSuccess, onFailure }: MiniGameComponentP
   };
 
   const spinSlots = () => {
+    const intervals = useRef<(number | NodeJS.Timeout)[]>([]); // 型をnumber | NodeJS.Timeout[]に修正
+    const latestSlots = useRef(slots); // 最新のスロット状態を保持するref
+
     setIsSpinning([true, true, true]); // 各スロットを回転状態に設定
 
-    const intervals = isSpinning.map((spinning, index) => {
-      if (spinning) {
-        return setInterval(() => {
-          setSlots((prev) => {
-            const newSlots = [...prev];
-            newSlots[index] = getRandomSymbol();
-            return newSlots;
-          });
-        }, 300); // スロットの回転速度を遅くする
-      }
-      return null;
+    // 既存のインターバルをクリア
+    intervals.current.forEach((interval) => clearInterval(interval));
+    intervals.current = []; // リセット
+
+    // 固定のインデックス配列を使用してインターバルを作成
+    [0, 1, 2].forEach((index) => {
+      const intervalId = setInterval(() => {
+        setSlots((prev) => {
+          const newSlots = [...prev];
+          newSlots[index] = getRandomSymbol();
+          latestSlots.current = newSlots; // 最新のスロット状態を更新
+          return newSlots;
+        });
+      }, 300); // スロットの回転速度を遅くする
+      intervals.current.push(intervalId); // 修正済み型でプッシュ
     });
 
     setTimeout(() => {
-      intervals.forEach((interval) => {
-        if (interval) clearInterval(interval);
-      });
+      // すべてのインターバルをクリア
+      intervals.current.forEach((interval) => clearInterval(interval));
+      intervals.current = []; // リセット
 
       setIsSpinning([false, false, false]); // 全スロットを停止状態に設定
 
-      if (slots[0] === slots[1] && slots[1] === slots[2]) {
+      const finalSlots = latestSlots.current; // 最新のスロット状態を取得
+      if (finalSlots[0] === finalSlots[1] && finalSlots[1] === finalSlots[2]) {
         setResult("win");
         onSuccess();
       } else {
@@ -56,37 +64,8 @@ export default function SlotMachine({ onSuccess, onFailure }: MiniGameComponentP
   };
 
   useEffect(() => {
-    const intervals = isSpinning.map((spinning, index) => {
-      if (spinning) {
-        return setInterval(() => {
-          setSlots((prev) => {
-            const newSlots = [...prev];
-            newSlots[index] = getRandomSymbol();
-            return newSlots;
-          });
-        }, 300);
-      }
-      return null;
-    });
-
-    return () => {
-      intervals.forEach((interval) => {
-        if (interval) clearInterval(interval);
-      });
-    };
-  }, [isSpinning]);
-
-  useEffect(() => {
-    if (isSpinning.every((spinning) => !spinning)) {
-      if (slots[0] === slots[1] && slots[1] === slots[2]) {
-        setResult("win");
-        onSuccess();
-      } else {
-        setResult("lose");
-        onFailure?.();
-      }
-    }
-  }, [isSpinning]);
+    // このuseEffectを削除し、結果判定をspinSlotsに一本化
+  }, []);
 
   const getRandomSymbol = () => {
     return symbols[Math.floor(Math.random() * symbols.length)];
