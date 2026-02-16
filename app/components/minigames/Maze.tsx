@@ -75,8 +75,8 @@ export default function Maze({ onSuccess, onFailure }: MiniGameComponentProps) {
             <div
               key={`${x}-${y}`}
               className={`w-10 h-10 flex items-center justify-center border
-                ${playerPosition.x === x && playerPosition.y === y ? 'bg-blue-500 text-white font-bold animate-bounce' : ''}
-                ${cell === 1 ? 'bg-gray-700' : 'bg-gray-300'}`}
+                ${playerPosition.x === x && playerPosition.y === y ? 'bg-gray-300 text-black font-bold animate-bounce' : ''}
+                ${cell === 1 ? 'bg-blue-500' : 'bg-gray-700'}`}
             >
               {playerPosition.x === x && playerPosition.y === y ? '🟢' : ''}
               {goalPosition.x === x && goalPosition.y === y && '🏁'}
