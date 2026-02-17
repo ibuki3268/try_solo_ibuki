@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MiniGameComponentProps } from "../../types/game";
 
 const OPERATORS = ["+", "-"] as const;
@@ -8,8 +8,8 @@ const OPERATORS = ["+", "-"] as const;
 export default function MathQuiz({ onSuccess, onFailure, timeLimit = 12 }: MiniGameComponentProps) {
   const doneRef = useRef(false);
   const [answer, setAnswer] = useState("");
-
-  const quiz = useMemo(() => {
+  const [error, setError] = useState("");
+  const [quiz] = useState(() => {
     const left = Math.floor(Math.random() * 90) + 10;
     const right = Math.floor(Math.random() * 90) + 10;
     const op = OPERATORS[Math.floor(Math.random() * OPERATORS.length)];
@@ -21,7 +21,7 @@ export default function MathQuiz({ onSuccess, onFailure, timeLimit = 12 }: MiniG
     }
     const result = left + right;
     return { left, right, op, result };
-  }, []);
+  });
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -39,7 +39,13 @@ export default function MathQuiz({ onSuccess, onFailure, timeLimit = 12 }: MiniG
   }, [timeLimit, onFailure]);
 
   const handleSubmit = () => {
-    if (doneRef.current) return;
+    if (doneRef.current || !quiz) return;
+    
+    if (answer.trim() === "") {
+      setError("答えを入力してください");
+      return;
+    }
+    
     doneRef.current = true;
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     if (Number(answer) === quiz.result) {
@@ -57,11 +63,15 @@ export default function MathQuiz({ onSuccess, onFailure, timeLimit = 12 }: MiniG
       </div>
       <input
         value={answer}
-        onChange={(event) => setAnswer(event.target.value)}
+        onChange={(event) => {
+          setAnswer(event.target.value);
+          setError("");
+        }}
         className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm text-white"
         inputMode="numeric"
         placeholder="答えを入力"
       />
+      {error && <p className="text-sm text-red-500 font-semibold">{error}</p>}
       <button
         onClick={handleSubmit}
         className="inline-flex items-center justify-center rounded-full bg-emerald-400 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300"

@@ -51,17 +51,32 @@ export default function TwoChoiceQuiz({ onSuccess, onFailure }: MiniGameComponen
       <div className="grid gap-3 sm:grid-cols-2">
         <button
           onClick={() => handleSelect("left")}
-          className="rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white transition hover:border-white/40"
+          className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
+            selected === "left"
+              ? "border-emerald-400 bg-emerald-400/20 text-emerald-300"
+              : "border-white/10 bg-slate-900/60 text-white hover:border-white/40"
+          }`}
         >
           {quiz.left}
         </button>
         <button
           onClick={() => handleSelect("right")}
-          className="rounded-2xl border border-white/10 bg-slate-900/60 px-4 py-3 text-sm text-white transition hover:border-white/40"
+          className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
+            selected === "right"
+              ? "border-emerald-400 bg-emerald-400/20 text-emerald-300"
+              : "border-white/10 bg-slate-900/60 text-white hover:border-white/40"
+          }`}
         >
           {quiz.right}
         </button>
       </div>
+      <button
+        onClick={handleSubmit}
+        disabled={!selected}
+        className="inline-flex items-center justify-center rounded-full bg-emerald-400 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300 disabled:bg-slate-600 disabled:cursor-not-allowed disabled:text-slate-400"
+      >
+        同意する
+      </button>
     </div>
   );
 }
