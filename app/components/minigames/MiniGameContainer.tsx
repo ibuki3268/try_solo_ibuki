@@ -18,6 +18,7 @@ import SlotMachine from "./SlotMachine";
 import SlidePuzzle from "./SlidePuzzle";
 import ChessBoard from "./ChessBoard";
 import DodgeGame from "./DodgeGame";
+import RhythmGame from "./RhythmGame";
 
 type MiniGameContainerProps = {
   game: MiniGame;
@@ -50,6 +51,7 @@ const gameComponentMap = {
   "slide-puzzle": SlidePuzzle,
   "chess-board": ChessBoard,
   "dodge-game": DodgeGame,
+  "rhythm-game": RhythmGame,
 } as const;
 
 export default function MiniGameContainer({
