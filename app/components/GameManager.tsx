@@ -79,6 +79,35 @@ export default function GameManager() {
   const consentArticle = consentArticles[state.currentGameIndex] ?? null;
   const progress = Math.min(state.currentGameIndex + 1, state.totalGames);
 
+  const playExplosionSound = () => {
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      
+      // 強力な爆発音を3連で再生
+      for (let i = 0; i < 3; i++) {
+        setTimeout(() => {
+          const osc = audioContext.createOscillator();
+          const gainNode = audioContext.createGain();
+          
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(220 - i * 60, audioContext.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(20, audioContext.currentTime + 0.5);
+          
+          gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+          
+          osc.connect(gainNode);
+          gainNode.connect(audioContext.destination);
+          
+          osc.start();
+          osc.stop(audioContext.currentTime + 0.5);
+        }, i * 200);
+      }
+    } catch (e) {
+      console.log('Audio not available');
+    }
+  };
+
   const startGame = () => {
     setState((prev) => ({ ...prev, status: "playing" }));
   };
@@ -173,17 +202,143 @@ export default function GameManager() {
       )}
 
       {state.status === "game-over" && (
-        <section className="rounded-3xl border border-rose-300/30 bg-rose-500/10 p-6 text-rose-100">
-          <h2 className="text-xl font-semibold">ゲームオーバー</h2>
-          <p className="mt-2 text-sm text-rose-100/80">
-            もう一度最初から挑戦しますか？
-          </p>
-          <button
-            onClick={resetGame}
-            className="mt-6 inline-flex items-center justify-center rounded-full bg-rose-200 px-6 py-3 text-sm font-semibold text-rose-950 transition hover:bg-rose-100"
-          >
-            リトライ
-          </button>
+        <section className="relative overflow-hidden rounded-3xl border-2 border-rose-400 bg-gradient-to-b from-rose-600/20 to-rose-900/20 p-8 text-rose-100 shadow-2xl"
+          style={{ animation: "flash-explosion 0.5s ease-out" }}
+          onAnimationStart={() => playExplosionSound()}
+        >
+          {/* 背景フラッシュ */}
+          <div
+            className="absolute inset-0 bg-white/30 pointer-events-none"
+            style={{ animation: "flash-fade 0.3s ease-out" }}
+          />
+          
+          {/* 爆破パーティクル */}
+          {Array.from({ length: 40 }).map((_, i) => (
+            <div
+              key={i}
+              className="particle absolute"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                width: `${Math.random() * 30 + 10}px`,
+                height: `${Math.random() * 30 + 10}px`,
+                backgroundColor: ["#ff6b6b", "#ff8787", "#ffa8a8", "#ffb3b3", "#ff4444"][Math.floor(Math.random() * 5)],
+                animation: `particle-explode ${2 + Math.random() * 1}s ease-out forwards`,
+                animationDelay: `${i * 0.04}s`,
+                boxShadow: "0 0 10px rgba(255, 100, 100, 0.8)",
+              }}
+            />
+          ))}
+          
+          {/* メインテキスト - 強化版 */}
+          <div className="shake-container relative z-10 text-center">
+            <h2 
+              className="text-6xl font-black text-white drop-shadow-2xl" 
+              style={{ 
+                animation: "shake-intense 0.5s ease-out, glow-pulse 2s ease-in-out infinite 0.5s",
+                textShadow: "0 0 20px rgba(255, 100, 100, 0.8), 0 0 40px rgba(255, 50, 50, 0.6)",
+              }}
+            >
+              💥 GAME OVER 💥
+            </h2>
+            <p className="mt-4 text-xl font-bold text-rose-200" style={{ textShadow: "0 0 10px rgba(255, 100, 100, 0.6)" }}>
+              3回失敗してしまいました...
+            </p>
+          </div>
+
+          {/* ボタン */}
+          <div className="relative z-10 mt-8 flex flex-col gap-3">
+            <button
+              onClick={() => window.location.href = '/portfolio-broken'}
+              className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-pink-500 px-8 py-3 text-lg font-bold text-white shadow-xl transition hover:from-rose-600 hover:to-pink-600 hover:shadow-2xl"
+              style={{ animation: "pulse-button 2s ease-in-out infinite 0.6s" }}
+            >
+              💔 ポートフォリオを見る
+            </button>
+            <button
+              onClick={resetGame}
+              className="inline-flex items-center justify-center rounded-full bg-rose-200/50 px-6 py-2 text-sm font-semibold text-rose-950 transition hover:bg-rose-200"
+            >
+              リトライ
+            </button>
+          </div>
+
+          <style>{`
+            @keyframes shake-intense {
+              0% { transform: translateX(0) rotateZ(0deg) scale(0.8); }
+              25% { transform: translateX(-8px) rotateZ(-2deg) scale(1.05); }
+              50% { transform: translateX(8px) rotateZ(2deg) scale(1.05); }
+              75% { transform: translateX(-5px) rotateZ(-1deg) scale(1.02); }
+              100% { transform: translateX(0) rotateZ(0deg) scale(1); }
+            }
+
+            @keyframes particle-explode {
+              0% {
+                opacity: 1;
+                transform: translate(0, 0) rotate(0deg) scale(1);
+              }
+              100% {
+                opacity: 0;
+                transform: translate(calc(var(--tx, 100px) * (Math.random() - 0.5) * 2), calc(var(--ty, 100px) * (Math.random() - 0.5) * 2)) rotate(360deg) scale(0);
+              }
+            }
+
+            @keyframes particle-fall {
+              0% {
+                opacity: 1;
+                transform: translateY(0) rotate(0deg);
+              }
+              100% {
+                opacity: 0;
+                transform: translateY(100px) rotate(180deg);
+              }
+            }
+
+            @keyframes flash-explosion {
+              0% { 
+                filter: brightness(2) saturate(2);
+                transform: scale(0.95);
+              }
+              100% { 
+                filter: brightness(1) saturate(1);
+                transform: scale(1);
+              }
+            }
+
+            @keyframes flash-fade {
+              0% { opacity: 1; }
+              100% { opacity: 0; }
+            }
+
+            @keyframes glow-pulse {
+              0%, 100% {
+                text-shadow: 0 0 20px rgba(255, 100, 100, 0.8), 0 0 40px rgba(255, 50, 50, 0.6);
+              }
+              50% {
+                text-shadow: 0 0 30px rgba(255, 100, 100, 1), 0 0 60px rgba(255, 50, 50, 0.8);
+              }
+            }
+
+            @keyframes pulse-button {
+              0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 0 20px rgba(244, 63, 94, 0.6);
+              }
+              50% { 
+                transform: scale(1.05);
+                box-shadow: 0 0 30px rgba(244, 63, 94, 0.8);
+              }
+            }
+
+            .explosion-section {
+              animation: explode-flash 0.4s ease-out;
+            }
+
+            @keyframes explode-flash {
+              0% { filter: brightness(2) saturate(1.5); }
+              100% { filter: brightness(1) saturate(1); }
+            }
+          `}</style>
         </section>
       )}
 
