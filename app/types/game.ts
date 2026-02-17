@@ -82,6 +82,7 @@ export type MiniGameComponentProps = {
   onSuccess: () => void;
   onFailure?: () => void;
   timeLimit?: number;
+  failedAttempts?: number; // 現在のゲームでの失敗回数（0=初回）
 };
 
 /**
