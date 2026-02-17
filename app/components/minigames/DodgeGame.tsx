@@ -31,11 +31,12 @@ const GAME_DURATION = 25000; // 25秒
 export default function DodgeGame({ onSuccess, onFailure }: MiniGameComponentProps) {
   const gameRef = useRef<HTMLDivElement>(null);
   const doneRef = useRef(false);
-
-  const [playerPos, setPlayerPos] = useState<PlayerPos>({
+  const playerPosRef = useRef<PlayerPos>({
     x: GAME_WIDTH / 2 - PLAYER_SIZE / 2,
     y: GAME_HEIGHT - PLAYER_SIZE - 10,
   });
+
+  const [playerPos, setPlayerPos] = useState<PlayerPos>(playerPosRef.current);
 
   const [obstacles, setObstacles] = useState<Obstacle[]>([]);
   const [timeLeft, setTimeLeft] = useState(GAME_DURATION / 1000);
@@ -60,7 +61,9 @@ export default function DodgeGame({ onSuccess, onFailure }: MiniGameComponentPro
       x = Math.max(0, Math.min(x, GAME_WIDTH - PLAYER_SIZE));
       y = Math.max(0, Math.min(y, GAME_HEIGHT - PLAYER_SIZE));
 
-      setPlayerPos({ x, y });
+      const newPos = { x, y };
+      playerPosRef.current = newPos;
+      setPlayerPos(newPos);
     };
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -130,16 +133,17 @@ export default function DodgeGame({ onSuccess, onFailure }: MiniGameComponentPro
           .filter((obs) => obs.y < GAME_HEIGHT);
 
         // 衝突判定
+        const pos = playerPosRef.current;
         for (const obs of updated) {
-          const playerRight = playerPos.x + PLAYER_SIZE;
-          const playerBottom = playerPos.y + PLAYER_SIZE;
+          const playerRight = pos.x + PLAYER_SIZE;
+          const playerBottom = pos.y + PLAYER_SIZE;
           const obsRight = obs.x + obs.width;
           const obsBottom = obs.y + obs.height;
 
           if (
-            playerPos.x < obsRight &&
+            pos.x < obsRight &&
             playerRight > obs.x &&
-            playerPos.y < obsBottom &&
+            pos.y < obsBottom &&
             playerBottom > obs.y
           ) {
             // 衝突フラグを立てる（親の状態更新は避ける）
@@ -153,7 +157,7 @@ export default function DodgeGame({ onSuccess, onFailure }: MiniGameComponentPro
     }, 1000 / 60); // 60fps
 
     return () => clearInterval(gameLoopInterval);
-  }, [gameActive, gameLost, playerPos, onSuccess, onFailure]);
+  }, [gameActive, gameLost, onSuccess, onFailure]);
 
   return (
     <div className="flex flex-col items-center gap-4">

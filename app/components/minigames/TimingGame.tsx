@@ -72,35 +72,37 @@ export default function TimingGame({
   }, [timeLimit, finish, isReading]);
 
   const handleClick = () => {
+    if (isReading) return; // 読む時間中はクリック無効
     finish(position >= SUCCESS_MIN && position <= SUCCESS_MAX);
   };
 
   return (
     <div className="flex flex-col gap-4">
-      {isReading ? null : (
-        <>
-          <div className="flex items-center justify-between text-xs uppercase tracking-[0.25em] text-slate-400">
-            <span>タイミング</span>
-            <span>残り {timeLimit}s</span>
-          </div>
-          <div className="relative h-3 rounded-full bg-slate-800">
-            <div
-              className="absolute inset-y-0 rounded-full bg-emerald-400/30"
-              style={{ left: `${SUCCESS_MIN}%`, width: `${SUCCESS_MAX - SUCCESS_MIN}%` }}
-            />
-            <div
-              className="absolute -top-2 h-7 w-2 rounded-full bg-emerald-300"
-              style={{ left: `calc(${position}% - 4px)` }}
-            />
-          </div>
-          <button
-            onClick={handleClick}
-            className="inline-flex items-center justify-center rounded-full bg-emerald-400 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300"
-          >
-            同意する
-          </button>
-        </>
-      )}
+      <div className="flex items-center justify-between text-xs uppercase tracking-[0.25em] text-slate-400">
+        <span>タイミング</span>
+        <span>残り {timeLimit}s</span>
+      </div>
+      <div className="relative h-3 rounded-full bg-slate-800">
+        <div
+          className="absolute inset-y-0 rounded-full bg-emerald-400/30"
+          style={{ left: `${SUCCESS_MIN}%`, width: `${SUCCESS_MAX - SUCCESS_MIN}%` }}
+        />
+        <div
+          className="absolute -top-2 h-7 w-2 rounded-full bg-emerald-300"
+          style={{ left: `calc(${position}% - 4px)` }}
+        />
+      </div>
+      <button
+        onClick={handleClick}
+        disabled={isReading}
+        className={`inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-semibold transition ${
+          isReading
+            ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
+            : 'bg-emerald-400 text-slate-950 hover:bg-emerald-300'
+        }`}
+      >
+        {isReading ? '確認中...' : '同意する'}
+      </button>
     </div>
   );
 }
