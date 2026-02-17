@@ -51,7 +51,7 @@ export default function ChessBoard({ onSuccess }: MiniGameComponentProps) {
         pos = Math.floor(Math.random() * 64);
       }
       usedPositions.add(pos);
-      const type = PIECE_TYPES[Math.floor(Math.random() * 4)]; // knight以外
+      const type = PIECE_TYPES[Math.floor(Math.random() * 4) + 1]; // knight以外（インデックス1-4）
       generatedPieces.push({
         id: `piece-${i}`,
         type,
