@@ -105,8 +105,8 @@ export const ALL_MINI_GAMES: MiniGame[] = [
   },
   {
     id: 'rhythm-game',
-    name: '音ゲー',
-    description: 'タイミングよくボタンを押そう',
+    name: 'リズムゲー',
+    description: '降ってくるノーツをタイミングよくクリック',
     difficulty: 3,
     timeLimit: 30,
   },

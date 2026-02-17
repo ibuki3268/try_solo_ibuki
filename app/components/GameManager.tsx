@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ALL_MINI_GAMES,
   createInitialGameState,
@@ -31,6 +31,7 @@ const IMPLEMENTED_GAME_IDS: MiniGameType[] = [
   "slide-puzzle",
   "chess-board",
   "dodge-game",
+  "rhythm-game",
 ];
 
 const ACTIVE_GAMES = ALL_MINI_GAMES.filter((game) =>
@@ -89,6 +90,28 @@ export default function GameManager() {
   const resetGame = () => {
     setState(createInitialGameState(ACTIVE_GAMES, GAME_CONSTANTS.ACTIVE_GAMES));
   };
+
+  // デバッグ用：Rキーでリズムゲームにジャンプ
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() === 'r') {
+        const rhythmGameIndex = state.gameSequence.findIndex(
+          (game) => game.id === 'rhythm-game'
+        );
+        if (rhythmGameIndex !== -1) {
+          setState((prev) => ({
+            ...prev,
+            currentGameIndex: rhythmGameIndex,
+            status: 'playing',
+            failedAttempts: 0,
+          }));
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [state.gameSequence]);
 
   const handleSuccess = () => {
     if (!currentGame) return;
