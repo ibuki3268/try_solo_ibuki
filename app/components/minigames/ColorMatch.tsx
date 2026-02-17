@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useState, useRef } from "react";
 import { MiniGameComponentProps } from "../../types/game";
 
 type ColorOption = {
@@ -17,10 +17,7 @@ const COLORS: ColorOption[] = [
 
 export default function ColorMatch({ onSuccess, onFailure }: MiniGameComponentProps) {
   const doneRef = useRef(false);
-  const target = useMemo(
-    () => COLORS[Math.floor(Math.random() * COLORS.length)],
-    []
-  );
+  const [target] = useState(() => COLORS[Math.floor(Math.random() * COLORS.length)]);
 
   const handlePick = (option: ColorOption) => {
     if (doneRef.current) return;
