@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   ALL_MINI_GAMES,
   createInitialGameState,
@@ -75,6 +75,9 @@ export default function GameManager() {
   const [state, setState] = useState(() =>
     createInitialGameState(ACTIVE_GAMES, GAME_CONSTANTS.ACTIVE_GAMES)
   );
+  const nfcWsRef = useRef<WebSocket | null>(null);
+  const nfcReconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const currentGame = state.gameSequence[state.currentGameIndex];
   const consentArticle = consentArticles[state.currentGameIndex] ?? null;
   const progress = Math.min(state.currentGameIndex + 1, state.totalGames);
@@ -114,6 +117,64 @@ export default function GameManager() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [state.gameSequence]);
+
+  // NFC WebSocket 接続ロジック
+  useEffect(() => {
+    if (state.status !== 'waiting-nfc') return;
+
+    const connectNFC = () => {
+      try {
+        // ローカルブリッジへの接続（開発環境のみ）
+        const ws = new WebSocket('ws://localhost:8787');
+
+        ws.onopen = () => {
+          console.log('NFC WebSocket connected');
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'nfc' && data.uid) {
+              console.log('NFC card detected:', data.uid);
+              // NFC読み込み成功 → ゲーム再開
+              setState((prev) => ({ ...prev, status: 'playing', failedAttempts: 0 }));
+            }
+          } catch (err) {
+            console.error('Failed to parse NFC message:', err);
+          }
+        };
+
+        ws.onerror = (error) => {
+          console.error('NFC WebSocket error:', error);
+          console.error('Error code:', (error as any).code);
+          console.error('Error message:', (error as any).message);
+        };
+
+        ws.onclose = () => {
+          console.log('NFC WebSocket closed');
+          // 3秒後に再接続
+          if (nfcReconnectTimeoutRef.current) clearTimeout(nfcReconnectTimeoutRef.current);
+          nfcReconnectTimeoutRef.current = setTimeout(connectNFC, 3000);
+        };
+
+        nfcWsRef.current = ws;
+      } catch (err) {
+        console.error('Failed to connect NFC WebSocket:', err);
+      }
+    };
+
+    connectNFC();
+
+    return () => {
+      if (nfcWsRef.current) {
+        nfcWsRef.current.close();
+        nfcWsRef.current = null;
+      }
+      if (nfcReconnectTimeoutRef.current) {
+        clearTimeout(nfcReconnectTimeoutRef.current);
+      }
+    };
+  }, [state.status]);
 
   const handleSuccess = () => {
     if (!currentGame) return;
@@ -158,16 +219,57 @@ export default function GameManager() {
       )}
 
       {state.status === "waiting-nfc" && (
-        <section className="rounded-3xl border border-white/10 bg-white/5 p-6 text-slate-100">
-          <h2 className="text-xl font-semibold">再挑戦の準備中</h2>
-          <p className="mt-2 text-sm text-slate-300">
-            次のゲームへ進むには再開してください。
-          </p>
+        <section className="rounded-3xl border border-emerald-300/30 bg-emerald-400/10 p-8 text-emerald-100">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-white">ポートフォリオへの最終段階</h2>
+            <p className="mt-2 text-sm text-emerald-100/80">
+              このゲームをクリアするとあなたのポートフォリオページに到達します
+            </p>
+          </div>
+
+          <div className="my-8 rounded-lg border-2 border-emerald-300 bg-emerald-500/5 p-6 text-center">
+            <p className="mb-4 text-lg font-semibold">NFCカードをかざしてください</p>
+            <div className="animate-pulse text-4xl">📱</div>
+            <p className="mt-4 text-sm text-emerald-100/60">
+              RC-300でカードを読み込んでください
+            </p>
+          </div>
+
+          <div className="rounded-lg bg-white/5 p-4 text-sm mb-4">
+            <p className="text-slate-300">
+              失敗回数: <span className="font-semibold text-emerald-300">{state.failedAttempts}</span>
+            </p>
+            <p className="mt-2 text-slate-300">
+              進捗: <span className="font-semibold text-emerald-300">{progress} / {state.totalGames}</span>
+            </p>
+          </div>
+
+          <div className="rounded-lg bg-blue-500/10 border border-blue-300/30 p-4 text-xs mb-4">
+            <p className="font-semibold text-blue-300 mb-2">💡 Windows から RC-300 を読み込む</p>
+            <p className="text-blue-100/70 mb-2">RC-300 アプリでカードを読み込み、以下の URL にアクセス：</p>
+            <code className="block bg-slate-900 p-2 rounded text-blue-200 overflow-x-auto text-xs break-all">
+              http://localhost:8788/nfc/send?uid=XXXXXXXX
+            </code>
+            <p className="text-blue-100/70 mt-2">※ XXXXXXXX の部分を UID に置き換えてください</p>
+          </div>
+
+          <button
+            onClick={() => {
+              fetch('http://localhost:8788/nfc/send?uid=TestCard123')
+                .then(r => r.json())
+                .then(() => console.log('✅ Test NFC sent'))
+                .catch(e => console.error('❌ Error:', e));
+            }}
+            className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-yellow-600 px-6 py-2 text-xs font-semibold text-white transition hover:bg-yellow-500"
+          >
+            🧪 テストカード送信（動作確認用）
+          </button>
+
           <button
             onClick={resumeGame}
-            className="mt-6 inline-flex items-center justify-center rounded-full border border-white/20 px-6 py-3 text-sm font-semibold text-white/80 transition hover:border-white/60 hover:text-white"
+            className="mt-3 inline-flex w-full items-center justify-center rounded-full border border-emerald-300 px-6 py-3 text-sm font-semibold text-emerald-100 transition hover:border-emerald-200 hover:bg-emerald-500/20"
           >
-            再開する
+            スキップ（再開する）
           </button>
         </section>
       )}

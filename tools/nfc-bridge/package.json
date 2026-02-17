@@ -1,0 +1,15 @@
+{
+  "name": "nfc-bridge",
+  "version": "1.0.0",
+  "description": "NFC Bridge WebSocket Server for RC-300",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js --dev"
+  },
+  "dependencies": {
+    "ws": "^8.14.2",
+    "pcsclite": "^1.0.1"
+  }
+}
