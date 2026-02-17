@@ -113,8 +113,8 @@ export const ALL_MINI_GAMES: MiniGame[] = [
   {
     id: 'dodge-game',
     name: '避けゲー',
-    description: '障害物を避けながら進もう',
-    difficulty: 2,
+    description: '落下する障害物を避けて25秒生き残ろう',
+    difficulty: 3,
     timeLimit: 25,
   },
   {

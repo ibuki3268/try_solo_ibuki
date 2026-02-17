@@ -30,6 +30,7 @@ const IMPLEMENTED_GAME_IDS: MiniGameType[] = [
   "slot-machine",
   "slide-puzzle",
   "chess-board",
+  "dodge-game",
 ];
 
 const ACTIVE_GAMES = ALL_MINI_GAMES.filter((game) =>
@@ -182,6 +183,7 @@ export default function GameManager() {
           consent={consentArticle}
           onSuccess={handleSuccess}
           onFailure={handleFailure}
+          failedAttempts={state.failedAttempts}
         />
       )}
     </div>

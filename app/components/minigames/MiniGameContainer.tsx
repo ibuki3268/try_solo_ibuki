@@ -17,6 +17,7 @@ import Maze from "./Maze";
 import SlotMachine from "./SlotMachine";
 import SlidePuzzle from "./SlidePuzzle";
 import ChessBoard from "./ChessBoard";
+import DodgeGame from "./DodgeGame";
 
 type MiniGameContainerProps = {
   game: MiniGame;
@@ -27,6 +28,7 @@ type MiniGameContainerProps = {
   } | null;
   onSuccess: () => void;
   onFailure: () => void;
+  failedAttempts?: number;
 };
 
 const gameComponentMap = {
@@ -47,6 +49,7 @@ const gameComponentMap = {
   "slot-machine": SlotMachine,
   "slide-puzzle": SlidePuzzle,
   "chess-board": ChessBoard,
+  "dodge-game": DodgeGame,
 } as const;
 
 export default function MiniGameContainer({
@@ -54,6 +57,7 @@ export default function MiniGameContainer({
   consent,
   onSuccess,
   onFailure,
+  failedAttempts,
 }: MiniGameContainerProps) {
   const GameComponent =
     gameComponentMap[
@@ -102,6 +106,7 @@ export default function MiniGameContainer({
             onSuccess={onSuccess}
             onFailure={onFailure}
             timeLimit={game.timeLimit}
+            failedAttempts={failedAttempts}
           />
         ) : (
           <div className="text-sm text-slate-300">

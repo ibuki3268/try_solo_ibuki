@@ -1,35 +1,51 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { MiniGameComponentProps } from "../../types/game";
 
 const SUCCESS_MIN = 45;
 const SUCCESS_MAX = 55;
+const READ_TIME = 15000; // 15秒（ミリ秒）
 
 export default function TimingGame({
   onSuccess,
   onFailure,
   timeLimit = 8,
+  failedAttempts = 0,
 }: MiniGameComponentProps) {
   const [position, setPosition] = useState(0);
+  const [isReading, setIsReading] = useState(failedAttempts === 0); // 初回（failedAttempts=0）のみ15秒待機
   const directionRef = useRef(1);
   const doneRef = useRef(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const readTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const finish = (success: boolean) => {
+  const finish = useCallback((success: boolean) => {
     if (doneRef.current) return;
     doneRef.current = true;
     if (intervalRef.current) clearInterval(intervalRef.current);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (readTimeoutRef.current) clearTimeout(readTimeoutRef.current);
     if (success) {
       onSuccess();
     } else {
       onFailure?.();
     }
-  };
+  }, [onSuccess, onFailure]);
 
   useEffect(() => {
+    // 読む時間がある場合、その後にゲームを開始
+    if (isReading) {
+      readTimeoutRef.current = setTimeout(() => {
+        setIsReading(false);
+      }, READ_TIME);
+      return () => {
+        if (readTimeoutRef.current) clearTimeout(readTimeoutRef.current);
+      };
+    }
+
+    // ゲーム開始
     intervalRef.current = setInterval(() => {
       setPosition((prev) => {
         let next = prev + directionRef.current * 2.4;
@@ -53,9 +69,10 @@ export default function TimingGame({
       if (intervalRef.current) clearInterval(intervalRef.current);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [timeLimit]);
+  }, [timeLimit, finish, isReading]);
 
   const handleClick = () => {
+    if (isReading) return; // 読む時間中はクリック無効
     finish(position >= SUCCESS_MIN && position <= SUCCESS_MAX);
   };
 
@@ -77,9 +94,14 @@ export default function TimingGame({
       </div>
       <button
         onClick={handleClick}
-        className="inline-flex items-center justify-center rounded-full bg-emerald-400 px-6 py-3 text-sm font-semibold text-slate-950 transition hover:bg-emerald-300"
+        disabled={isReading}
+        className={`inline-flex items-center justify-center rounded-full px-6 py-3 text-sm font-semibold transition ${
+          isReading
+            ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
+            : 'bg-emerald-400 text-slate-950 hover:bg-emerald-300'
+        }`}
       >
-        同意する
+        {isReading ? '確認中...' : '同意する'}
       </button>
     </div>
   );
