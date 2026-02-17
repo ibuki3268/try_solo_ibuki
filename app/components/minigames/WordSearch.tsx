@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import type { MiniGameComponentProps } from '@/app/types/game';
 
 // 正解のキーワード候補
@@ -16,13 +16,11 @@ export default function WordSearch({ onSuccess, onFailure }: MiniGameComponentPr
   const TIME_LIMIT = 15; // 15秒
   const [timeLeft, setTimeLeft] = useState(TIME_LIMIT);
   const [found, setFound] = useState(false);
-
-  // ゲームデータを生成（初回のみ）
-  const gameData = useMemo(() => {
+  const [gameData] = useState(() => {
     const targetWord = KEYWORDS[Math.floor(Math.random() * KEYWORDS.length)];
     const size = 64;
     const chars: string[] = [];
-    
+
     // ランダムなダミー文字で埋める
     for (let i = 0; i < size; i++) {
       chars.push(DUMMY_CHARS[Math.floor(Math.random() * DUMMY_CHARS.length)]);
@@ -38,14 +36,14 @@ export default function WordSearch({ onSuccess, onFailure }: MiniGameComponentPr
     }
 
     const startPos = possiblePositions[Math.floor(Math.random() * possiblePositions.length)];
-    
+
     // キーワードを配置
     for (let i = 0; i < targetWord.length; i++) {
       chars[startPos + i] = targetWord[i];
     }
 
     return { targetWord, grid: chars, answerPos: startPos };
-  }, []);
+  });
 
   // タイマー
   useEffect(() => {

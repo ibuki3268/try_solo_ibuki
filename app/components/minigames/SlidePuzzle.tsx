@@ -13,12 +13,33 @@ interface Tile {
  * スライドパズル
  * 数字を順番に揃える 15パズル風
  */
-export default function SlidePuzzle({ onSuccess, onFailure }: MiniGameComponentProps) {
+export default function SlidePuzzle({ onSuccess }: MiniGameComponentProps) {
   const [tiles, setTiles] = useState<Tile[]>([]);
   const [moves, setMoves] = useState(0);
   const [solved, setSolved] = useState(false);
   const GRID_SIZE = 4; // 4x4 = 16マス
-  const EMPTY_TILE_ID = 99;
+
+  // 有効な手を取得
+  const getValidMoves = (emptyIndex: number): number[] => {
+    const validMoves: number[] = [];
+    const row = Math.floor(emptyIndex / GRID_SIZE);
+    const col = emptyIndex % GRID_SIZE;
+
+    if (row > 0) validMoves.push(emptyIndex - GRID_SIZE); // 上
+    if (row < GRID_SIZE - 1) validMoves.push(emptyIndex + GRID_SIZE); // 下
+    if (col > 0) validMoves.push(emptyIndex - 1); // 左
+    if (col < GRID_SIZE - 1) validMoves.push(emptyIndex + 1); // 右
+
+    return validMoves;
+  };
+
+  // パズル完成を判定
+  const isSolved = (tilesToCheck: Tile[]): boolean => {
+    for (let i = 0; i < tilesToCheck.length - 1; i++) {
+      if (tilesToCheck[i].value !== i + 1) return false;
+    }
+    return tilesToCheck[tilesToCheck.length - 1].value === null;
+  };
 
   // パズルを初期化
   useEffect(() => {
@@ -27,7 +48,7 @@ export default function SlidePuzzle({ onSuccess, onFailure }: MiniGameComponentP
 
       while (!isSolvable) {
         // 1-15 + 空白(null)
-        let initialTiles: Tile[] = Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, i) => ({
+        const initialTiles: Tile[] = Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, i) => ({
           id: i,
           value: i === GRID_SIZE * GRID_SIZE - 1 ? null : i + 1,
           position: i,
@@ -41,7 +62,7 @@ export default function SlidePuzzle({ onSuccess, onFailure }: MiniGameComponentP
           let validMoves = getValidMoves(emptyIndex);
           // 前の位置に戻らないようにフィルタリング
           validMoves = validMoves.filter((move) => move !== previousEmptyIndex);
-          
+
           const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
           [initialTiles[emptyIndex], initialTiles[randomMove]] = [
             initialTiles[randomMove],
@@ -60,16 +81,16 @@ export default function SlidePuzzle({ onSuccess, onFailure }: MiniGameComponentP
         }
       }
     };
-    
+
     initPuzzle();
-  }, [GRID_SIZE]);
+  }, []);
 
   const initializePuzzle = () => {
     let isSolvable = false;
 
     while (!isSolvable) {
       // 1-15 + 空白(null)
-      let initialTiles: Tile[] = Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, i) => ({
+      const initialTiles: Tile[] = Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, i) => ({
         id: i,
         value: i === GRID_SIZE * GRID_SIZE - 1 ? null : i + 1,
         position: i,
@@ -83,7 +104,7 @@ export default function SlidePuzzle({ onSuccess, onFailure }: MiniGameComponentP
         let validMoves = getValidMoves(emptyIndex);
         // 前の位置に戻らないようにフィルタリング
         validMoves = validMoves.filter((move) => move !== previousEmptyIndex);
-        
+
         const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
         [initialTiles[emptyIndex], initialTiles[randomMove]] = [
           initialTiles[randomMove],
@@ -101,19 +122,6 @@ export default function SlidePuzzle({ onSuccess, onFailure }: MiniGameComponentP
         isSolvable = true;
       }
     }
-  };
-
-  const getValidMoves = (emptyIndex: number): number[] => {
-    const validMoves: number[] = [];
-    const row = Math.floor(emptyIndex / GRID_SIZE);
-    const col = emptyIndex % GRID_SIZE;
-
-    if (row > 0) validMoves.push(emptyIndex - GRID_SIZE); // 上
-    if (row < GRID_SIZE - 1) validMoves.push(emptyIndex + GRID_SIZE); // 下
-    if (col > 0) validMoves.push(emptyIndex - 1); // 左
-    if (col < GRID_SIZE - 1) validMoves.push(emptyIndex + 1); // 右
-
-    return validMoves;
   };
 
   const handleTileClick = (clickedIndex: number) => {
@@ -139,13 +147,6 @@ export default function SlidePuzzle({ onSuccess, onFailure }: MiniGameComponentP
     }
   };
 
-  const isSolved = (tilesToCheck: Tile[]): boolean => {
-    for (let i = 0; i < tilesToCheck.length - 1; i++) {
-      if (tilesToCheck[i].value !== i + 1) return false;
-    }
-    return tilesToCheck[tilesToCheck.length - 1].value === null;
-  };
-
   return (
     <div className="flex flex-col items-center gap-6 p-6">
       <h2 className="text-2xl font-bold">スライドパズル 🧩</h2>
@@ -166,10 +167,13 @@ export default function SlidePuzzle({ onSuccess, onFailure }: MiniGameComponentP
       </div>
 
       {/* パズルグリッド */}
-      <div className="grid gap-2 p-4 bg-gray-900 rounded-lg" style={{ 
-        gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(0, 1fr))`,
-        width: 'fit-content'
-      }}>
+      <div
+        className="grid gap-2 p-4 bg-gray-900 rounded-lg"
+        style={{
+          gridTemplateColumns: `repeat(${GRID_SIZE}, minmax(0, 1fr))`,
+          width: 'fit-content',
+        }}
+      >
         {tiles.map((tile, index) => (
           <button
             key={tile.id}

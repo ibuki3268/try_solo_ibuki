@@ -22,7 +22,7 @@ export default function SlotMachine({ onSuccess, onFailure }: MiniGameComponentP
 
   const stopSlot = (index: number) => {
     const id = intervalsRef.current[index];
-    if (id) clearInterval(id as any);
+    if (id) clearInterval(id as NodeJS.Timeout | number);
     delete intervalsRef.current[index];
 
     setIsSpinning((prev) => {
@@ -55,7 +55,7 @@ export default function SlotMachine({ onSuccess, onFailure }: MiniGameComponentP
     }
 
     // 既存インターバルをクリア
-    intervalsRef.current.forEach((id) => clearInterval(id as any));
+    intervalsRef.current.forEach((id) => clearInterval(id as NodeJS.Timeout | number));
     intervalsRef.current = [];
 
     [0, 1, 2].forEach((index) => {
@@ -67,7 +67,7 @@ export default function SlotMachine({ onSuccess, onFailure }: MiniGameComponentP
           return next;
         });
       }, 300);
-      intervalsRef.current.push(intervalId as any);
+      intervalsRef.current.push(intervalId as NodeJS.Timeout | number);
     });
     
     // タイムアウトは削除 - 手動停止のみで結果判定
@@ -102,7 +102,7 @@ export default function SlotMachine({ onSuccess, onFailure }: MiniGameComponentP
     return () => {
       // defensive cleanup
       if (intervalsRef && intervalsRef.current) {
-        intervalsRef.current.forEach((id) => { if (id) clearInterval(id as any); });
+        intervalsRef.current.forEach((id) => { if (id) clearInterval(id as NodeJS.Timeout | number); });
       }
     };
   }, []);

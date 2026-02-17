@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { MiniGameComponentProps } from "../../types/game";
 
 const TARGET_CLICKS = 40;
@@ -15,12 +15,12 @@ export default function Clicker({
   const doneRef = useRef(false);
   const countRef = useRef(0);
 
-  const finish = (success: boolean) => {
+  const finish = useCallback((success: boolean) => {
     if (doneRef.current) return;
     doneRef.current = true;
     const callback = success ? onSuccess : onFailure ?? (() => {});
     setTimeout(callback, 0);
-  };
+  }, [onSuccess, onFailure]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -35,7 +35,7 @@ export default function Clicker({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [finish]);
 
   const handleClick = () => {
     if (doneRef.current) return;

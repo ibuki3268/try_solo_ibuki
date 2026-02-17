@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MiniGameComponentProps } from "../../types/game";
 
 type Tile = {
@@ -22,13 +22,12 @@ export default function MemoryGame({ onSuccess, onFailure }: MiniGameComponentPr
   const [step, setStep] = useState(0);
   const [revealing, setRevealing] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const doneRef = useRef(false);
-
-  const sequence = useMemo(() => {
-    return Array.from({ length: SEQUENCE_LENGTH }, () =>
+  const [sequence] = useState(() =>
+    Array.from({ length: SEQUENCE_LENGTH }, () =>
       TILES[Math.floor(Math.random() * TILES.length)].id
-    );
-  }, []);
+    )
+  );
+  const doneRef = useRef(false);
 
   useEffect(() => {
     let index = 0;

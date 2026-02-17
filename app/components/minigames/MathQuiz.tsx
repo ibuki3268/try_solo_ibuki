@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MiniGameComponentProps } from "../../types/game";
 
 const OPERATORS = ["+", "-"] as const;
@@ -8,8 +8,7 @@ const OPERATORS = ["+", "-"] as const;
 export default function MathQuiz({ onSuccess, onFailure, timeLimit = 12 }: MiniGameComponentProps) {
   const doneRef = useRef(false);
   const [answer, setAnswer] = useState("");
-
-  const quiz = useMemo(() => {
+  const [quiz] = useState(() => {
     const left = Math.floor(Math.random() * 90) + 10;
     const right = Math.floor(Math.random() * 90) + 10;
     const op = OPERATORS[Math.floor(Math.random() * OPERATORS.length)];
@@ -21,7 +20,7 @@ export default function MathQuiz({ onSuccess, onFailure, timeLimit = 12 }: MiniG
     }
     const result = left + right;
     return { left, right, op, result };
-  }, []);
+  });
 
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -39,7 +38,7 @@ export default function MathQuiz({ onSuccess, onFailure, timeLimit = 12 }: MiniG
   }, [timeLimit, onFailure]);
 
   const handleSubmit = () => {
-    if (doneRef.current) return;
+    if (doneRef.current || !quiz) return;
     doneRef.current = true;
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     if (Number(answer) === quiz.result) {

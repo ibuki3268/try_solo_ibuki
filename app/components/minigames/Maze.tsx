@@ -3,26 +3,26 @@
 import { useState, useEffect } from 'react';
 import type { MiniGameComponentProps } from '@/app/types/game';
 
+const GOAL_POSITION = { x: 9, y: 9 };
+const MAZE = [
+  [0, 1, 1, 0, 0, 0, 1, 0, 0, 0],
+  [0, 0, 1, 0, 1, 0, 1, 0, 1, 0],
+  [1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
+  [0, 1, 1, 1, 1, 1, 1, 0, 1, 0],
+  [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+  [0, 1, 1, 1, 1, 0, 1, 1, 1, 0],
+  [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+  [1, 1, 1, 0, 1, 1, 1, 1, 1, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+  [0, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+];
+
 /**
  * 迷路ゲーム
  * キーボードでキャラクターをゴールまで移動させる
  */
-export default function Maze({ onSuccess, onFailure }: MiniGameComponentProps) {
+export default function Maze({ onSuccess }: MiniGameComponentProps) {
   const [playerPosition, setPlayerPosition] = useState({ x: 0, y: 0 });
-  const goalPosition = { x: 9, y: 9 };
-
-  const maze = [
-    [0, 1, 1, 0, 0, 0, 1, 0, 0, 0],
-    [0, 0, 1, 0, 1, 0, 1, 0, 1, 0],
-    [1, 0, 0, 0, 1, 0, 0, 0, 1, 0],
-    [0, 1, 1, 1, 1, 1, 1, 0, 1, 0],
-    [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-    [0, 1, 1, 1, 1, 0, 1, 1, 1, 0],
-    [0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-    [1, 1, 1, 0, 1, 1, 1, 1, 1, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
-    [0, 1, 1, 1, 1, 1, 1, 0, 0, 0],
-  ];
 
   const handleKeyDown = (e: KeyboardEvent) => {
     setPlayerPosition((prev) => {
@@ -38,9 +38,9 @@ export default function Maze({ onSuccess, onFailure }: MiniGameComponentProps) {
       if (
         newPosition.x < 0 ||
         newPosition.y < 0 ||
-        newPosition.x >= maze[0].length ||
-        newPosition.y >= maze.length ||
-        maze[newPosition.y][newPosition.x] === 1
+        newPosition.x >= MAZE[0].length ||
+        newPosition.y >= MAZE.length ||
+        MAZE[newPosition.y][newPosition.x] === 1
       ) {
         console.log('Invalid move');
         return prev; // 無効な移動は無視
@@ -57,8 +57,8 @@ export default function Maze({ onSuccess, onFailure }: MiniGameComponentProps) {
 
   useEffect(() => {
     if (
-      playerPosition.x === goalPosition.x &&
-      playerPosition.y === goalPosition.y
+      playerPosition.x === GOAL_POSITION.x &&
+      playerPosition.y === GOAL_POSITION.y
     ) {
       onSuccess();
     }
@@ -70,7 +70,7 @@ export default function Maze({ onSuccess, onFailure }: MiniGameComponentProps) {
       <p className="text-sm text-gray-400">矢印キーでキャラクターをゴールまで移動させてください。</p>
 
       <div className="grid grid-cols-10 gap-1">
-        {maze.map((row, y) =>
+        {MAZE.map((row, y) =>
           row.map((cell, x) => (
             <div
               key={`${x}-${y}`}
@@ -79,7 +79,7 @@ export default function Maze({ onSuccess, onFailure }: MiniGameComponentProps) {
                 ${cell === 1 ? 'bg-blue-500' : 'bg-gray-700'}`}
             >
               {playerPosition.x === x && playerPosition.y === y ? '🟢' : ''}
-              {goalPosition.x === x && goalPosition.y === y && '🏁'}
+              {GOAL_POSITION.x === x && GOAL_POSITION.y === y && '🏁'}
             </div>
           ))
         )}

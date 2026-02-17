@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { MiniGameComponentProps } from "../../types/game";
 
 const SUCCESS_MIN = 45;
@@ -17,7 +17,7 @@ export default function TimingGame({
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const finish = (success: boolean) => {
+  const finish = useCallback((success: boolean) => {
     if (doneRef.current) return;
     doneRef.current = true;
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -27,7 +27,7 @@ export default function TimingGame({
     } else {
       onFailure?.();
     }
-  };
+  }, [onSuccess, onFailure]);
 
   useEffect(() => {
     intervalRef.current = setInterval(() => {
@@ -53,7 +53,7 @@ export default function TimingGame({
       if (intervalRef.current) clearInterval(intervalRef.current);
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
-  }, [timeLimit]);
+  }, [timeLimit, finish]);
 
   const handleClick = () => {
     finish(position >= SUCCESS_MIN && position <= SUCCESS_MAX);
