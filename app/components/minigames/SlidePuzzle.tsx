@@ -27,7 +27,7 @@ export default function SlidePuzzle({ onSuccess, onFailure }: MiniGameComponentP
 
       while (!isSolvable) {
         // 1-15 + 空白(null)
-        let initialTiles: Tile[] = Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, i) => ({
+        const initialTiles: Tile[] = Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, i) => ({
           id: i,
           value: i === GRID_SIZE * GRID_SIZE - 1 ? null : i + 1,
           position: i,
@@ -69,7 +69,7 @@ export default function SlidePuzzle({ onSuccess, onFailure }: MiniGameComponentP
 
     while (!isSolvable) {
       // 1-15 + 空白(null)
-      let initialTiles: Tile[] = Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, i) => ({
+      const initialTiles: Tile[] = Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, i) => ({
         id: i,
         value: i === GRID_SIZE * GRID_SIZE - 1 ? null : i + 1,
         position: i,

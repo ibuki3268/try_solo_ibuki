@@ -16,6 +16,7 @@ import DragDrop from "./DragDrop";
 import Maze from "./Maze";
 import SlotMachine from "./SlotMachine";
 import SlidePuzzle from "./SlidePuzzle";
+import ChessBoard from "./ChessBoard";
 
 type MiniGameContainerProps = {
   game: MiniGame;
@@ -45,6 +46,7 @@ const gameComponentMap = {
   "maze": Maze,
   "slot-machine": SlotMachine,
   "slide-puzzle": SlidePuzzle,
+  "chess-board": ChessBoard,
 } as const;
 
 export default function MiniGameContainer({

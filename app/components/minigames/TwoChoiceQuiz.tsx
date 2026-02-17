@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useState, useRef } from "react";
 import { MiniGameComponentProps } from "../../types/game";
 
 type Choice = {
@@ -33,12 +33,20 @@ const QUESTIONS: Choice[] = [
 
 export default function TwoChoiceQuiz({ onSuccess, onFailure }: MiniGameComponentProps) {
   const doneRef = useRef(false);
-  const quiz = useMemo(() => QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)], []);
+  const [selected, setSelected] = useState<"left" | "right" | null>(null);
+  const [quiz] = useState(
+    () => QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)]
+  );
 
   const handleSelect = (choice: "left" | "right") => {
     if (doneRef.current) return;
+    setSelected(choice);
+  };
+
+  const handleSubmit = () => {
+    if (doneRef.current || !selected) return;
     doneRef.current = true;
-    if (choice === quiz.correct) {
+    if (selected === quiz.correct) {
       onSuccess();
     } else {
       onFailure?.();
