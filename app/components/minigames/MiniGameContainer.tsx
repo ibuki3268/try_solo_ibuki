@@ -15,6 +15,7 @@ import WordSearch from "./WordSearch";
 import DragDrop from "./DragDrop";
 import Maze from "./Maze";
 import SlotMachine from "./SlotMachine";
+import SlidePuzzle from "./SlidePuzzle";
 
 type MiniGameContainerProps = {
   game: MiniGame;
@@ -43,6 +44,7 @@ const gameComponentMap = {
   "drag-drop": DragDrop,
   "maze": Maze,
   "slot-machine": SlotMachine,
+  "slide-puzzle": SlidePuzzle,
 } as const;
 
 export default function MiniGameContainer({
