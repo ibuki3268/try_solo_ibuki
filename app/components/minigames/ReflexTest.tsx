@@ -18,6 +18,7 @@ export default function ReflexTest({
   );
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const readTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reactionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const doneRef = useRef(false);
 
   useEffect(() => {
@@ -36,17 +37,27 @@ export default function ReflexTest({
       const delay = Math.floor(Math.random() * (MAX_DELAY_MS - MIN_DELAY_MS)) + MIN_DELAY_MS;
       timeoutRef.current = setTimeout(() => {
         setStatus("ready");
-        timeoutRef.current = setTimeout(() => {
-          if (!doneRef.current) {
-            doneRef.current = true;
-            onFailure?.();
-          }
-        }, REACTION_LIMIT_MS);
       }, delay);
     }
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [status]);
+
+  // ready状態で反応時間制限を管理
+  useEffect(() => {
+    if (status === "ready") {
+      reactionTimeoutRef.current = setTimeout(() => {
+        if (!doneRef.current) {
+          doneRef.current = true;
+          onFailure?.();
+        }
+      }, REACTION_LIMIT_MS);
+    }
+
+    return () => {
+      if (reactionTimeoutRef.current) clearTimeout(reactionTimeoutRef.current);
     };
   }, [status, onFailure]);
 
