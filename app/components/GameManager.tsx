@@ -91,8 +91,10 @@ export default function GameManager() {
     setState(createInitialGameState(ACTIVE_GAMES, GAME_CONSTANTS.ACTIVE_GAMES));
   };
 
-  // デバッグ用：Rキーでリズムゲームにジャンプ
+  // デバッグ用：Rキーでリズムゲームにジャンプ（開発環境のみ）
   useEffect(() => {
+    if (process.env.NODE_ENV !== 'development') return;
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key.toLowerCase() === 'r') {
         const rhythmGameIndex = state.gameSequence.findIndex(
