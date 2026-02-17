@@ -11,7 +11,25 @@ type Note = {
 
 type JudgeResult = 'perfect' | 'good' | 'bad' | null;
 
-const GAME_DURATION = 30000; // 30秒
+// ノーツシーケンス定義
+const NOTES_SEQUENCE: Note[] = [
+  { id: 'note-0', time: 1000, hit: false },
+  { id: 'note-1', time: 2000, hit: false },
+  { id: 'note-2', time: 3000, hit: false },
+  { id: 'note-3', time: 4000, hit: false },
+  { id: 'note-4', time: 5000, hit: false },
+  { id: 'note-5', time: 6000, hit: false },
+  { id: 'note-6', time: 7000, hit: false },
+  { id: 'note-7', time: 8000, hit: false },
+  { id: 'note-8', time: 9000, hit: false },
+  { id: 'note-9', time: 10000, hit: false },
+  { id: 'note-10', time: 11000, hit: false },
+  { id: 'note-11', time: 12000, hit: false },
+];
+
+// 最後のノーツの時刻 + 1秒のバッファでゲーム時間を設定
+const MAX_NOTE_TIME = Math.max(...NOTES_SEQUENCE.map(n => n.time));
+const GAME_DURATION = MAX_NOTE_TIME + 1000; // 約13秒
 const JUDGE_LINE_Y = 300; // 判定ラインのY座標（画面内に見える位置）
 const NOTE_SPEED = 0.2; // ノーツの速度（ピクセル/ms）
 // 計算: ノーツが判定ラインに到達するまでの時間 = JUDGE_LINE_Y / NOTE_SPEED
@@ -31,21 +49,8 @@ export default function RhythmGame({ onSuccess, onFailure }: MiniGameComponentPr
   const doneRef = useRef(false);
   const gameStartRef = useRef(Date.now());
 
-  // 難易度に応じたノーツシーケンス（ゲーム開始からのms）
-  const notesSequenceRef = useRef<Note[]>([
-    { id: 'note-0', time: 1000, hit: false },
-    { id: 'note-1', time: 2000, hit: false },
-    { id: 'note-2', time: 3000, hit: false },
-    { id: 'note-3', time: 4000, hit: false },
-    { id: 'note-4', time: 5000, hit: false },
-    { id: 'note-5', time: 6000, hit: false },
-    { id: 'note-6', time: 7000, hit: false },
-    { id: 'note-7', time: 8000, hit: false },
-    { id: 'note-8', time: 9000, hit: false },
-    { id: 'note-9', time: 10000, hit: false },
-    { id: 'note-10', time: 11000, hit: false },
-    { id: 'note-11', time: 12000, hit: false },
-  ]);
+  // ノーツシーケンスへの参照
+  const notesSequenceRef = useRef<Note[]>(NOTES_SEQUENCE);
 
   // hit フラグの状態管理（notesSequenceRef の notes を直接変更する）
   const [hitNotes, setHitNotes] = useState<Set<string>>(new Set());
@@ -209,12 +214,6 @@ export default function RhythmGame({ onSuccess, onFailure }: MiniGameComponentPr
             ♪
           </button>
         ))}
-
-        {/* デバッグ表示 */}
-        <div className="absolute top-2 left-2 text-white text-xs bg-black/50 p-2 pointer-events-none">
-          <div>ノーツ数: {notesWithPos.length}</div>
-          <div>表示位置: {notesWithPos.map(n => `${n.id}:${Math.round(n.y)}`).join(', ')}</div>
-        </div>
 
         {/* 判定表示 */}
         {judgeDisplay && (
