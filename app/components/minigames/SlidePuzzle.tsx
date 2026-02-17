@@ -22,32 +22,85 @@ export default function SlidePuzzle({ onSuccess, onFailure }: MiniGameComponentP
 
   // パズルを初期化
   useEffect(() => {
-    initializePuzzle();
-  }, []);
+    const initPuzzle = () => {
+      let isSolvable = false;
+
+      while (!isSolvable) {
+        // 1-15 + 空白(null)
+        let initialTiles: Tile[] = Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, i) => ({
+          id: i,
+          value: i === GRID_SIZE * GRID_SIZE - 1 ? null : i + 1,
+          position: i,
+        }));
+
+        // シャッフル（後戻りを防ぎながら50回スワップ）
+        let emptyIndex = GRID_SIZE * GRID_SIZE - 1;
+        let previousEmptyIndex = -1;
+
+        for (let i = 0; i < 50; i++) {
+          let validMoves = getValidMoves(emptyIndex);
+          // 前の位置に戻らないようにフィルタリング
+          validMoves = validMoves.filter((move) => move !== previousEmptyIndex);
+          
+          const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+          [initialTiles[emptyIndex], initialTiles[randomMove]] = [
+            initialTiles[randomMove],
+            initialTiles[emptyIndex],
+          ];
+          previousEmptyIndex = emptyIndex;
+          emptyIndex = randomMove;
+        }
+
+        // solvedな状態でないことを確認
+        if (!isSolved(initialTiles)) {
+          setTiles(initialTiles);
+          setMoves(0);
+          setSolved(false);
+          isSolvable = true;
+        }
+      }
+    };
+    
+    initPuzzle();
+  }, [GRID_SIZE]);
 
   const initializePuzzle = () => {
-    // 1-15 + 空白(null)
-    let initialTiles: Tile[] = Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, i) => ({
-      id: i,
-      value: i === GRID_SIZE * GRID_SIZE - 1 ? null : i + 1,
-      position: i,
-    }));
+    let isSolvable = false;
 
-    // シャッフル（50回ランダムに隣接タイルをスワップ）
-    let emptyIndex = GRID_SIZE * GRID_SIZE - 1;
-    for (let i = 0; i < 50; i++) {
-      const validMoves = getValidMoves(emptyIndex);
-      const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
-      [initialTiles[emptyIndex], initialTiles[randomMove]] = [
-        initialTiles[randomMove],
-        initialTiles[emptyIndex],
-      ];
-      emptyIndex = randomMove;
+    while (!isSolvable) {
+      // 1-15 + 空白(null)
+      let initialTiles: Tile[] = Array.from({ length: GRID_SIZE * GRID_SIZE }, (_, i) => ({
+        id: i,
+        value: i === GRID_SIZE * GRID_SIZE - 1 ? null : i + 1,
+        position: i,
+      }));
+
+      // シャッフル（後戻りを防ぎながら50回スワップ）
+      let emptyIndex = GRID_SIZE * GRID_SIZE - 1;
+      let previousEmptyIndex = -1;
+
+      for (let i = 0; i < 50; i++) {
+        let validMoves = getValidMoves(emptyIndex);
+        // 前の位置に戻らないようにフィルタリング
+        validMoves = validMoves.filter((move) => move !== previousEmptyIndex);
+        
+        const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+        [initialTiles[emptyIndex], initialTiles[randomMove]] = [
+          initialTiles[randomMove],
+          initialTiles[emptyIndex],
+        ];
+        previousEmptyIndex = emptyIndex;
+        emptyIndex = randomMove;
+      }
+
+      // solvedな状態でないことを確認
+      if (!isSolved(initialTiles)) {
+        setTiles(initialTiles);
+        setMoves(0);
+        setSolved(false);
+        isSolvable = true;
+      }
     }
-
-    setTiles(initialTiles);
-    setMoves(0);
-    setSolved(false);
   };
 
   const getValidMoves = (emptyIndex: number): number[] => {
@@ -119,7 +172,7 @@ export default function SlidePuzzle({ onSuccess, onFailure }: MiniGameComponentP
       }}>
         {tiles.map((tile, index) => (
           <button
-            key={index}
+            key={tile.id}
             onClick={() => handleTileClick(index)}
             disabled={tile.value === null || solved}
             className={`w-16 h-16 text-xl font-bold rounded transition ${
