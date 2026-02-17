@@ -11,6 +11,7 @@ import {
 import { GAME_CONSTANTS, MiniGameType } from "../types/game";
 import LifeDisplay from "./LifeDisplay";
 import MiniGameContainer from "./minigames/MiniGameContainer";
+import { playExplosionSound, clearAllPendingTimeouts } from "@/app/lib/audioUtils";
 
 const IMPLEMENTED_GAME_IDS: MiniGameType[] = [
   "basic-agree",
@@ -79,35 +80,6 @@ export default function GameManager() {
   const consentArticle = consentArticles[state.currentGameIndex] ?? null;
   const progress = Math.min(state.currentGameIndex + 1, state.totalGames);
 
-  const playExplosionSound = () => {
-    try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      
-      // 強力な爆発音を3連で再生
-      for (let i = 0; i < 3; i++) {
-        setTimeout(() => {
-          const osc = audioContext.createOscillator();
-          const gainNode = audioContext.createGain();
-          
-          osc.type = 'square';
-          osc.frequency.setValueAtTime(220 - i * 60, audioContext.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(20, audioContext.currentTime + 0.5);
-          
-          gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-          
-          osc.connect(gainNode);
-          gainNode.connect(audioContext.destination);
-          
-          osc.start();
-          osc.stop(audioContext.currentTime + 0.5);
-        }, i * 200);
-      }
-    } catch (e) {
-      console.log('Audio not available');
-    }
-  };
-
   const startGame = () => {
     setState((prev) => ({ ...prev, status: "playing" }));
   };
@@ -120,29 +92,84 @@ export default function GameManager() {
     setState(createInitialGameState(ACTIVE_GAMES, GAME_CONSTANTS.ACTIVE_GAMES));
   };
 
-  // デバッグ用：Rキーでリズムゲームにジャンプ（開発環境のみ）
+  // デバッグ用：各ゲームへのキーボードジャンプ（開発環境のみ）
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development') return;
 
+    // ゲームIDとキーのマッピング
+    const gameKeyMap: Record<string, MiniGameType> = {
+      '1': 'basic-agree',
+      '2': 'escape-button',
+      '3': 'rapid-click',
+      '4': 'timing-game',
+      '5': 'long-press',
+      '6': 'clicker',
+      '7': 'math-quiz',
+      '8': 'memory-game',
+      '9': 'reflex-test',
+      '0': 'two-choice-quiz',
+      'q': 'color-match',
+      'w': 'word-search',
+      'e': 'drag-drop',
+      'a': 'maze',
+      's': 'slot-machine',
+      'd': 'slide-puzzle',
+      'f': 'chess-board',
+      'g': 'dodge-game',
+      'r': 'rhythm-game',
+    };
+
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() === 'r') {
-        const rhythmGameIndex = state.gameSequence.findIndex(
-          (game) => game.id === 'rhythm-game'
-        );
-        if (rhythmGameIndex !== -1) {
-          setState((prev) => ({
-            ...prev,
-            currentGameIndex: rhythmGameIndex,
-            status: 'playing',
-            failedAttempts: 0,
-          }));
-        }
+      const key = event.key.toLowerCase();
+      const targetGameId = gameKeyMap[key];
+      
+      if (targetGameId) {
+        setState((prevState) => {
+          // まず現在のシーケンスから探す
+          let gameIndex = prevState.gameSequence.findIndex(
+            (game) => game.id === targetGameId
+          );
+          
+          if (gameIndex !== -1) {
+            console.log(`[DEBUG] Jumped to ${targetGameId} (found in sequence at index: ${gameIndex}) using key: ${key}`);
+            return {
+              ...prevState,
+              currentGameIndex: gameIndex,
+              status: 'playing' as const,
+              failedAttempts: 0,
+            };
+          } else {
+            // シーケンスに無い場合は、ACTIVE_GAMESから探してシーケンスに追加
+            const targetGame = ACTIVE_GAMES.find((game) => game.id === targetGameId);
+            if (targetGame) {
+              const newSequence = [...prevState.gameSequence, targetGame];
+              console.log(`[DEBUG] Jumped to ${targetGameId} (added to sequence) using key: ${key}`);
+              return {
+                ...prevState,
+                gameSequence: newSequence,
+                currentGameIndex: newSequence.length - 1,
+                status: 'playing' as const,
+                failedAttempts: 0,
+              };
+            } else {
+              console.warn(`[DEBUG] Game ${targetGameId} not found at all`);
+              return prevState;
+            }
+          }
+        });
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [state.gameSequence]);
+  }, [process.env.NODE_ENV]);
+
+  // cleanup: コンポーネント破棄時にタイムアウトをクリア
+  useEffect(() => {
+    return () => {
+      clearAllPendingTimeouts();
+    };
+  }, []);
 
   const handleSuccess = () => {
     if (!currentGame) return;
@@ -204,7 +231,11 @@ export default function GameManager() {
       {state.status === "game-over" && (
         <section className="relative overflow-hidden rounded-3xl border-2 border-rose-400 bg-gradient-to-b from-rose-600/20 to-rose-900/20 p-8 text-rose-100 shadow-2xl"
           style={{ animation: "flash-explosion 0.5s ease-out" }}
-          onAnimationStart={() => playExplosionSound()}
+          onAnimationStart={() => {
+            playExplosionSound({ baseFrequency: 220, duration: 0.5, gain: 0.4 }).catch((err) => {
+              console.warn('Failed to play game-over explosion sound:', err);
+            });
+          }}
         >
           {/* 背景フラッシュ */}
           <div
@@ -213,22 +244,28 @@ export default function GameManager() {
           />
           
           {/* 爆破パーティクル */}
-          {Array.from({ length: 40 }).map((_, i) => (
-            <div
-              key={i}
-              className="particle absolute"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                width: `${Math.random() * 30 + 10}px`,
-                height: `${Math.random() * 30 + 10}px`,
-                backgroundColor: ["#ff6b6b", "#ff8787", "#ffa8a8", "#ffb3b3", "#ff4444"][Math.floor(Math.random() * 5)],
-                animation: `particle-explode ${2 + Math.random() * 1}s ease-out forwards`,
-                animationDelay: `${i * 0.04}s`,
-                boxShadow: "0 0 10px rgba(255, 100, 100, 0.8)",
-              }}
-            />
-          ))}
+          {Array.from({ length: 40 }).map((_, i) => {
+            const randomTx = (Math.random() - 0.5) * 200;
+            const randomTy = (Math.random() - 0.5) * 200;
+            return (
+              <div
+                key={i}
+                className="particle absolute"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  width: `${Math.random() * 30 + 10}px`,
+                  height: `${Math.random() * 30 + 10}px`,
+                  backgroundColor: ["#ff6b6b", "#ff8787", "#ffa8a8", "#ffb3b3", "#ff4444"][Math.floor(Math.random() * 5)],
+                  animation: `particle-explode ${2 + Math.random() * 1}s ease-out forwards`,
+                  animationDelay: `${i * 0.04}s`,
+                  boxShadow: "0 0 10px rgba(255, 100, 100, 0.8)",
+                  '--tx': `${randomTx}px`,
+                  '--ty': `${randomTy}px`,
+                } as React.CSSProperties}
+              />
+            );
+          })}
           
           {/* メインテキスト - 強化版 */}
           <div className="shake-container relative z-10 text-center">
@@ -279,7 +316,7 @@ export default function GameManager() {
               }
               100% {
                 opacity: 0;
-                transform: translate(calc(var(--tx, 100px) * (Math.random() - 0.5) * 2), calc(var(--ty, 100px) * (Math.random() - 0.5) * 2)) rotate(360deg) scale(0);
+                transform: translate(var(--tx, 100px), var(--ty, 100px)) rotate(360deg) scale(0);
               }
             }
 

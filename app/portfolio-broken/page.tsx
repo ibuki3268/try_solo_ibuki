@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { playExplosionSound, clearAllPendingTimeouts } from '@/app/lib/audioUtils';
 
 interface ParticleStyle {
   width: number;
@@ -13,35 +14,6 @@ interface ParticleStyle {
 export default function PortfolioBroken() {
   const [particles, setParticles] = useState<ParticleStyle[]>([]);
 
-  const playExplosionSound = () => {
-    try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      
-      // 3つの爆発音を連続で再生
-      for (let i = 0; i < 3; i++) {
-        setTimeout(() => {
-          const osc = audioContext.createOscillator();
-          const gainNode = audioContext.createGain();
-          
-          osc.type = 'square';
-          osc.frequency.setValueAtTime(200 - i * 50, audioContext.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(30, audioContext.currentTime + 0.4);
-          
-          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
-          
-          osc.connect(gainNode);
-          gainNode.connect(audioContext.destination);
-          
-          osc.start();
-          osc.stop(audioContext.currentTime + 0.4);
-        }, i * 180);
-      }
-    } catch (e) {
-      console.log('Audio playback not available:', e);
-    }
-  };
-
   useEffect(() => {
     // クライアント側でのみランダム値を生成
     const newParticles = Array.from({ length: 30 }).map(() => ({
@@ -53,8 +25,10 @@ export default function PortfolioBroken() {
     }));
     setParticles(newParticles);
     
-    // ページ表示時に爆発音を再生
-    playExplosionSound();
+    // cleanup: コンポーネント破棄時にタイムアウトをクリア
+    return () => {
+      clearAllPendingTimeouts();
+    };
   }, []);
 
   return (
@@ -139,8 +113,11 @@ export default function PortfolioBroken() {
         <div className="space-y-3">
           <button
             onClick={() => {
-              playExplosionSound();
-              window.location.href = '/';
+              playExplosionSound().catch((err) => {
+                console.warn('Failed to play explosion sound:', err);
+              }).finally(() => {
+                window.location.href = '/';
+              });
             }}
             className="w-full px-6 py-3 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-semibold rounded-lg transition"
           >
