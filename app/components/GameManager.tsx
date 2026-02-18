@@ -11,6 +11,7 @@ import {
 import { GAME_CONSTANTS, MiniGameType } from "../types/game";
 import LifeDisplay from "./LifeDisplay";
 import MiniGameContainer from "./minigames/MiniGameContainer";
+import { playExplosionSound, clearAllPendingTimeouts } from "@/app/lib/audioUtils";
 
 const IMPLEMENTED_GAME_IDS: MiniGameType[] = [
   "basic-agree",
@@ -91,29 +92,84 @@ export default function GameManager() {
     setState(createInitialGameState(ACTIVE_GAMES, GAME_CONSTANTS.ACTIVE_GAMES));
   };
 
-  // デバッグ用：Rキーでリズムゲームにジャンプ（開発環境のみ）
+  // デバッグ用：各ゲームへのキーボードジャンプ（開発環境のみ）
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development') return;
 
+    // ゲームIDとキーのマッピング
+    const gameKeyMap: Record<string, MiniGameType> = {
+      '1': 'basic-agree',
+      '2': 'escape-button',
+      '3': 'rapid-click',
+      '4': 'timing-game',
+      '5': 'long-press',
+      '6': 'clicker',
+      '7': 'math-quiz',
+      '8': 'memory-game',
+      '9': 'reflex-test',
+      '0': 'two-choice-quiz',
+      'q': 'color-match',
+      'w': 'word-search',
+      'e': 'drag-drop',
+      'a': 'maze',
+      's': 'slot-machine',
+      'd': 'slide-puzzle',
+      'f': 'chess-board',
+      'g': 'dodge-game',
+      'r': 'rhythm-game',
+    };
+
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key.toLowerCase() === 'r') {
-        const rhythmGameIndex = state.gameSequence.findIndex(
-          (game) => game.id === 'rhythm-game'
-        );
-        if (rhythmGameIndex !== -1) {
-          setState((prev) => ({
-            ...prev,
-            currentGameIndex: rhythmGameIndex,
-            status: 'playing',
-            failedAttempts: 0,
-          }));
-        }
+      const key = event.key.toLowerCase();
+      const targetGameId = gameKeyMap[key];
+      
+      if (targetGameId) {
+        setState((prevState) => {
+          // まず現在のシーケンスから探す
+          let gameIndex = prevState.gameSequence.findIndex(
+            (game) => game.id === targetGameId
+          );
+          
+          if (gameIndex !== -1) {
+            console.log(`[DEBUG] Jumped to ${targetGameId} (found in sequence at index: ${gameIndex}) using key: ${key}`);
+            return {
+              ...prevState,
+              currentGameIndex: gameIndex,
+              status: 'playing' as const,
+              failedAttempts: 0,
+            };
+          } else {
+            // シーケンスに無い場合は、ACTIVE_GAMESから探してシーケンスに追加
+            const targetGame = ACTIVE_GAMES.find((game) => game.id === targetGameId);
+            if (targetGame) {
+              const newSequence = [...prevState.gameSequence, targetGame];
+              console.log(`[DEBUG] Jumped to ${targetGameId} (added to sequence) using key: ${key}`);
+              return {
+                ...prevState,
+                gameSequence: newSequence,
+                currentGameIndex: newSequence.length - 1,
+                status: 'playing' as const,
+                failedAttempts: 0,
+              };
+            } else {
+              console.warn(`[DEBUG] Game ${targetGameId} not found at all`);
+              return prevState;
+            }
+          }
+        });
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [state.gameSequence]);
+  }, [process.env.NODE_ENV]);
+
+  // cleanup: コンポーネント破棄時にタイムアウトをクリア
+  useEffect(() => {
+    return () => {
+      clearAllPendingTimeouts();
+    };
+  }, []);
 
   const handleSuccess = () => {
     if (!currentGame) return;
@@ -173,17 +229,153 @@ export default function GameManager() {
       )}
 
       {state.status === "game-over" && (
-        <section className="rounded-3xl border border-rose-300/30 bg-rose-500/10 p-6 text-rose-100">
-          <h2 className="text-xl font-semibold">ゲームオーバー</h2>
-          <p className="mt-2 text-sm text-rose-100/80">
-            もう一度最初から挑戦しますか？
-          </p>
-          <button
-            onClick={resetGame}
-            className="mt-6 inline-flex items-center justify-center rounded-full bg-rose-200 px-6 py-3 text-sm font-semibold text-rose-950 transition hover:bg-rose-100"
-          >
-            リトライ
-          </button>
+        <section className="relative overflow-hidden rounded-3xl border-2 border-rose-400 bg-gradient-to-b from-rose-600/20 to-rose-900/20 p-8 text-rose-100 shadow-2xl"
+          style={{ animation: "flash-explosion 0.5s ease-out" }}
+          onAnimationStart={() => {
+            playExplosionSound({ baseFrequency: 220, duration: 0.5, gain: 0.4 }).catch((err) => {
+              console.warn('Failed to play game-over explosion sound:', err);
+            });
+          }}
+        >
+          {/* 背景フラッシュ */}
+          <div
+            className="absolute inset-0 bg-white/30 pointer-events-none"
+            style={{ animation: "flash-fade 0.3s ease-out" }}
+          />
+          
+          {/* 爆破パーティクル */}
+          {Array.from({ length: 40 }).map((_, i) => {
+            const randomTx = (Math.random() - 0.5) * 200;
+            const randomTy = (Math.random() - 0.5) * 200;
+            return (
+              <div
+                key={i}
+                className="particle absolute"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  width: `${Math.random() * 30 + 10}px`,
+                  height: `${Math.random() * 30 + 10}px`,
+                  backgroundColor: ["#ff6b6b", "#ff8787", "#ffa8a8", "#ffb3b3", "#ff4444"][Math.floor(Math.random() * 5)],
+                  animation: `particle-explode ${2 + Math.random() * 1}s ease-out forwards`,
+                  animationDelay: `${i * 0.04}s`,
+                  boxShadow: "0 0 10px rgba(255, 100, 100, 0.8)",
+                  '--tx': `${randomTx}px`,
+                  '--ty': `${randomTy}px`,
+                } as React.CSSProperties}
+              />
+            );
+          })}
+          
+          {/* メインテキスト - 強化版 */}
+          <div className="shake-container relative z-10 text-center">
+            <h2 
+              className="text-6xl font-black text-white drop-shadow-2xl" 
+              style={{ 
+                animation: "shake-intense 0.5s ease-out, glow-pulse 2s ease-in-out infinite 0.5s",
+                textShadow: "0 0 20px rgba(255, 100, 100, 0.8), 0 0 40px rgba(255, 50, 50, 0.6)",
+              }}
+            >
+              💥 GAME OVER 💥
+            </h2>
+            <p className="mt-4 text-xl font-bold text-rose-200" style={{ textShadow: "0 0 10px rgba(255, 100, 100, 0.6)" }}>
+              3回失敗してしまいました...
+            </p>
+          </div>
+
+          {/* ボタン */}
+          <div className="relative z-10 mt-8 flex flex-col gap-3">
+            <button
+              onClick={() => window.location.href = '/portfolio-broken'}
+              className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-pink-500 px-8 py-3 text-lg font-bold text-white shadow-xl transition hover:from-rose-600 hover:to-pink-600 hover:shadow-2xl"
+              style={{ animation: "pulse-button 2s ease-in-out infinite 0.6s" }}
+            >
+              💔 ポートフォリオを見る
+            </button>
+            <button
+              onClick={resetGame}
+              className="inline-flex items-center justify-center rounded-full bg-rose-200/50 px-6 py-2 text-sm font-semibold text-rose-950 transition hover:bg-rose-200"
+            >
+              リトライ
+            </button>
+          </div>
+
+          <style>{`
+            @keyframes shake-intense {
+              0% { transform: translateX(0) rotateZ(0deg) scale(0.8); }
+              25% { transform: translateX(-8px) rotateZ(-2deg) scale(1.05); }
+              50% { transform: translateX(8px) rotateZ(2deg) scale(1.05); }
+              75% { transform: translateX(-5px) rotateZ(-1deg) scale(1.02); }
+              100% { transform: translateX(0) rotateZ(0deg) scale(1); }
+            }
+
+            @keyframes particle-explode {
+              0% {
+                opacity: 1;
+                transform: translate(0, 0) rotate(0deg) scale(1);
+              }
+              100% {
+                opacity: 0;
+                transform: translate(var(--tx, 100px), var(--ty, 100px)) rotate(360deg) scale(0);
+              }
+            }
+
+            @keyframes particle-fall {
+              0% {
+                opacity: 1;
+                transform: translateY(0) rotate(0deg);
+              }
+              100% {
+                opacity: 0;
+                transform: translateY(100px) rotate(180deg);
+              }
+            }
+
+            @keyframes flash-explosion {
+              0% { 
+                filter: brightness(2) saturate(2);
+                transform: scale(0.95);
+              }
+              100% { 
+                filter: brightness(1) saturate(1);
+                transform: scale(1);
+              }
+            }
+
+            @keyframes flash-fade {
+              0% { opacity: 1; }
+              100% { opacity: 0; }
+            }
+
+            @keyframes glow-pulse {
+              0%, 100% {
+                text-shadow: 0 0 20px rgba(255, 100, 100, 0.8), 0 0 40px rgba(255, 50, 50, 0.6);
+              }
+              50% {
+                text-shadow: 0 0 30px rgba(255, 100, 100, 1), 0 0 60px rgba(255, 50, 50, 0.8);
+              }
+            }
+
+            @keyframes pulse-button {
+              0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 0 20px rgba(244, 63, 94, 0.6);
+              }
+              50% { 
+                transform: scale(1.05);
+                box-shadow: 0 0 30px rgba(244, 63, 94, 0.8);
+              }
+            }
+
+            .explosion-section {
+              animation: explode-flash 0.4s ease-out;
+            }
+
+            @keyframes explode-flash {
+              0% { filter: brightness(2) saturate(1.5); }
+              100% { filter: brightness(1) saturate(1); }
+            }
+          `}</style>
         </section>
       )}
 
