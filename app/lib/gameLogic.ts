@@ -43,14 +43,12 @@ export const ALL_MINI_GAMES: MiniGame[] = [
     name: 'スライドパズル',
     description: 'パズルを完成させてください',
     difficulty: 3,
-    timeLimit: 60,
   },
   {
     id: 'maze',
     name: '迷路',
     description: '迷路をゴールまで進もう',
     difficulty: 2,
-    timeLimit: 45,
   },
   {
     id: 'memory-game',

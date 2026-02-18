@@ -76,7 +76,7 @@ const consentArticles = [
     items: [
       "(1) 利用者がゲーム体験をSNS等で共有する場合、開発者をクレジットします。",
       "(2) 利用者はクリアスクリーンショット等の共有時に、ハッシュタグを付けて応援します。",
-      "(3) 利用者はネタバレ的な内容の共有際には注意し、他のプレイヤーに配慮します。",
+      "(3) 利用者はネタバレ的な内容の共有の際には注意し、他のプレイヤーに配慮します。",
       "(4) 利用者は友人や知人への口コミを通じて、本ゲームの認知拡大に協力します。",
     ],
   },
@@ -85,7 +85,7 @@ const consentArticles = [
     title: "ゲームプレイについて",
     items: [
       "(1) 利用者は本ゲームの難易度や結果に対し、キレてはいけません。",
-      "(2) 利用者は仕様に文句があっても暴言を吐かないこと誓います。",
+      "(2) 利用者は仕様に文句があっても暴言を吐かないことを誓います。",
       "(3) 利用者は本ゲームをプレイ中、他者の睡眠を妨害しないよう配慮します。",
       "(4) 利用者は負けて悔しい場合でも、壁を殴ることなく再挑戦を誓います。",
     ],
@@ -117,7 +117,7 @@ const consentArticles = [
       "(1) 利用者はゲーム内での不正行為（チート等）を行いません。",
       "(2) 利用者は利用規約に違反する行為をしません。",
       "(3) 利用者は不正行為による処遇に異議を唱えないと誓います。",
-      "(4) 利用者はこの利用規約にたどり着く前に規約に同意することを誓っているので異議は認められません",
+      "(4) 利用者はこの利用規約にたどり着く前に規約に同意することを誓っているので異議は認められません。",
     ],
   },
   {
@@ -137,7 +137,7 @@ const consentArticles = [
       "(1) 利用者は不正行為（チート）を用いた場合開発者に損害賠償としてハックを支払います。",
       "(2) 本ゲームは現状のまま提供され、明示的な保証はありません。",
       "(3) 利用者が本ゲーム利用時に受けた身体的・精神的損害の責任は負いません。",
-      "(4) 利用者はこれらの条件に同意し、ゲームプレイをプレイし終えます",
+      "(4) 利用者はこれらの条件に同意し、ゲームプレイをプレイし終えます。",
     ],
   },
 ];
@@ -151,6 +151,14 @@ export default function GameManager() {
   const progress = Math.min(state.currentGameIndex + 1, state.totalGames);
 
   const startGame = () => {
+    // ゲーム開始時刻をlocalStorageに記録（改ざん検出用）
+    const now = Date.now();
+    try {
+      localStorage.setItem('gameStartTime', now.toString());
+      localStorage.setItem('gameStartIndex', state.currentGameIndex.toString());
+    } catch (e) {
+      console.warn('Failed to save game start time:', e);
+    }
     setState((prev) => ({ ...prev, status: "playing" }));
   };
 
@@ -159,6 +167,13 @@ export default function GameManager() {
   };
 
   const resetGame = () => {
+    // ゲーム再開時にlocalStorage内のゲーム時刻をクリア
+    try {
+      localStorage.removeItem('gameStartTime');
+      localStorage.removeItem('gameStartIndex');
+    } catch (e) {
+      console.warn('Failed to clear game storage:', e);
+    }
     setState(createInitialGameState(ACTIVE_GAMES, GAME_CONSTANTS.ACTIVE_GAMES));
   };
 
@@ -238,11 +253,54 @@ export default function GameManager() {
   useEffect(() => {
     return () => {
       clearAllPendingTimeouts();
+      // ゲーム時刻検証データをクリア
+      try {
+        localStorage.removeItem('gameStartTime');
+        localStorage.removeItem('gameStartIndex');
+      } catch (e) {
+        // localStorage unavailable
+      }
     };
   }, []);
 
   const handleSuccess = () => {
     if (!currentGame) return;
+
+    // 改ざん検出：ゲーム開始時刻を検証
+    try {
+      const savedStartTime = localStorage.getItem('gameStartTime');
+      const savedStartIndex = localStorage.getItem('gameStartIndex');
+      
+      if (savedStartTime && savedStartIndex) {
+        const startTime = parseInt(savedStartTime, 10);
+        const startIndex = parseInt(savedStartIndex, 10);
+        const now = Date.now();
+        const elapsedMs = now - startTime;
+        
+        // ゲームインデックスが一致するか確認
+        if (startIndex !== state.currentGameIndex) {
+          console.warn('Game index mismatch - possible cheating detected');
+          handleFailure();
+          return;
+        }
+        
+        // 経過時間が5秒未満（不正なほど高速クリア）
+        if (elapsedMs < 5000) {
+          console.warn('Game cleared too fast - possible cheating detected', { elapsedMs });
+          handleFailure();
+          return;
+        }
+        
+        // デバイス時刻が戻っている（改ざん検出）
+        if (elapsedMs < 0) {
+          console.warn('Device time went backwards - possible time manipulation');
+          handleFailure();
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to verify game time:', e);
+    }
 
     setState((prev) => {
       const updated = handleGameSuccess(prev, currentGame.id);
