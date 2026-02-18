@@ -154,13 +154,10 @@ export default function GameManager() {
     // ゲーム開始時刻をlocalStorageに記録（改ざん検出用）
     const now = Date.now();
     try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        localStorage.setItem('gameStartTime', now.toString());
-        localStorage.setItem('gameStartIndex', state.currentGameIndex.toString());
-      }
+      localStorage.setItem('gameStartTime', now.toString());
+      localStorage.setItem('gameStartIndex', state.currentGameIndex.toString());
     } catch (e) {
-      // localStorage unavailable (private mode, storage quota exceeded, etc.)
-      // Game proceeds without cheat detection
+      console.warn('Failed to save game start time:', e);
     }
     setState((prev) => ({ ...prev, status: "playing" }));
   };
@@ -172,21 +169,17 @@ export default function GameManager() {
   const resetGame = () => {
     // ゲーム再開時にlocalStorage内のゲーム時刻をクリア
     try {
-      if (typeof window !== 'undefined' && window.localStorage) {
-        localStorage.removeItem('gameStartTime');
-        localStorage.removeItem('gameStartIndex');
-      }
+      localStorage.removeItem('gameStartTime');
+      localStorage.removeItem('gameStartIndex');
     } catch (e) {
-      // localStorage unavailable - continue without error
+      console.warn('Failed to clear game storage:', e);
     }
     setState(createInitialGameState(ACTIVE_GAMES, GAME_CONSTANTS.ACTIVE_GAMES));
   };
 
   // デバッグ用：各ゲームへのキーボードジャンプ（開発環境のみ）
-  // デバッグモードの有効化判定（本番環境では無効）
-  const isDebugMode = process.env.NEXT_PUBLIC_DEBUG_MODE === 'true' || process.env.NODE_ENV === 'development';
   useEffect(() => {
-    if (!isDebugMode) return;
+    if (process.env.NODE_ENV !== 'development') return;
 
     // ゲームIDとキーのマッピング
     const gameKeyMap: Record<string, MiniGameType> = {
@@ -254,7 +247,7 @@ export default function GameManager() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isDebugMode]);
+  }, [process.env.NODE_ENV]);
 
   // cleanup: コンポーネント破棄時にタイムアウトをクリア
   useEffect(() => {
@@ -262,10 +255,8 @@ export default function GameManager() {
       clearAllPendingTimeouts();
       // ゲーム時刻検証データをクリア
       try {
-        if (typeof window !== 'undefined' && window.localStorage) {
-          localStorage.removeItem('gameStartTime');
-          localStorage.removeItem('gameStartIndex');
-        }
+        localStorage.removeItem('gameStartTime');
+        localStorage.removeItem('gameStartIndex');
       } catch (e) {
         // localStorage unavailable
       }
@@ -277,15 +268,6 @@ export default function GameManager() {
 
     // 改ざん検出：ゲーム開始時刻を検証
     try {
-      if (typeof window === 'undefined' || !window.localStorage) {
-        // localStorage not available - skip cheat detection but proceed
-        setState((prev) => {
-          const updated = handleGameSuccess(prev, currentGame.id);
-          return proceedToNextGame(updated, prev.gameSequence);
-        });
-        return;
-      }
-      
       const savedStartTime = localStorage.getItem('gameStartTime');
       const savedStartIndex = localStorage.getItem('gameStartIndex');
       
@@ -329,27 +311,13 @@ export default function GameManager() {
   const handleFailure = () => {
     setState((prev) => {
       const failureState = handleGameFailure(prev);
-
-      // ゲームオーバーでない場合、失敗したゲームを新しいゲームに置き換える     
+      
+      // ゲームオーバーでない場合、失敗したゲームを新しいゲームに置き換える
       if (failureState.status !== 'game-over') {
-        // バリデーション：ACTIVE_GAMES が存在し、有効な範囲であることを確認
-        if (!ACTIVE_GAMES || ACTIVE_GAMES.length === 0) {
-          console.error('No games available - forcing game-over');
-          return { ...failureState, status: 'game-over' as const };
-        }
-
         const newGameSequence = [...failureState.gameSequence];
-        const randomIndex = Math.floor(Math.random() * ACTIVE_GAMES.length);
-        const newGame = ACTIVE_GAMES[randomIndex];
-
-        // ゲーム選択が成功していることを確認
-        if (!newGame || !newGame.id) {
-          console.error('Invalid game selection - forcing game-over');
-          return { ...failureState, status: 'game-over' as const };
-        }
-
+        const newGame = ACTIVE_GAMES[Math.floor(Math.random() * ACTIVE_GAMES.length)];
         newGameSequence[failureState.currentGameIndex] = newGame;
-
+        
         return {
           ...failureState,
           gameSequence: newGameSequence,
@@ -357,7 +325,7 @@ export default function GameManager() {
           status: 'playing' as const, // 即座に次のゲームを開始
         };
       }
-
+      
       return failureState;
     });
   };
