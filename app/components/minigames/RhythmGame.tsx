@@ -62,29 +62,23 @@ export default function RhythmGame({ onSuccess, onFailure }: MiniGameComponentPr
   const judgeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleNoteClick = (noteId: string) => {
-    console.log('handleNoteClick called:', noteId);
     if (!gameActive || doneRef.current) {
-      console.log('Early return - gameActive:', gameActive, 'doneRef:', doneRef.current);
       return;
     }
 
     // 既に hit している場合はスキップ
     if (hitNotes.has(noteId)) {
-      console.log('Already hit');
       return;
     }
 
     const now = Date.now();
     const elapsedTime = now - gameStartRef.current;
-    console.log('elapsedTime:', elapsedTime);
 
     const note = notesSequenceRef.current.find((n) => n.id === noteId);
-    console.log('note found:', note);
     if (!note) return;
 
     // タイミング判定
     const timeDiff = elapsedTime - note.time;
-    console.log('timeDiff:', timeDiff, 'JUDGE_PERFECT_RANGE:', JUDGE_PERFECT_RANGE);
     
     let judge: JudgeResult = null;
     let addScore = 0;
@@ -104,7 +98,6 @@ export default function RhythmGame({ onSuccess, onFailure }: MiniGameComponentPr
       displayText = '🟥 Bad';
     }
 
-    console.log('judge:', judge, 'addScore:', addScore);
     setJudgeDisplay(displayText);
     setScore((prev) => prev + addScore);
     setHitNotes((prev) => new Set([...prev, noteId]));
@@ -117,9 +110,7 @@ export default function RhythmGame({ onSuccess, onFailure }: MiniGameComponentPr
 
     // スコアチェック（この時点では prev なので addScore と組み合わせる）
     const newScore = score + addScore;
-    console.log('newScore:', newScore, 'TARGET_SCORE:', TARGET_SCORE);
     if (newScore >= TARGET_SCORE) {
-      console.log('Success!');
       doneRef.current = true;
       setGameActive(false);
       onSuccess();
@@ -167,9 +158,6 @@ export default function RhythmGame({ onSuccess, onFailure }: MiniGameComponentPr
   };
 
   const notesWithPos = getNotesWithPositions();
-
-  // デバッグ用: ノーツ座標をコンソール出力
-  console.log('notes rendered:', notesWithPos.length, 'positions:', notesWithPos.map(n => ({ id: n.id, y: n.y, hit: n.hit })));
 
   return (
     <div className="flex flex-col items-center gap-4">
