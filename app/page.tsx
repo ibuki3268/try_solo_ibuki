@@ -32,7 +32,7 @@ export default function Home() {
                 ボタンは、素直に押させてくれない。
               </h2>
               <p className="max-w-xl text-base leading-7 text-slate-300 sm:text-lg">
-                20種類のミニゲームを突破して「同意する」ボタンへ到達。NFCで挑戦を開始し、すべてをクリアすると
+                19種類のミニゲームを突破して「同意する」ボタンへ到達。NFCで挑戦を開始し、すべてをクリアすると
                 ポートフォリオへ遷移します。
               </p>
               <p className="text-sm text-emerald-200/80">ポートフォリオを覗きたい人へ。</p>
