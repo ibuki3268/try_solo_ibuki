@@ -70,6 +70,76 @@ const consentArticles = [
       "(4) 利用者は改善点の提案を行う際、代替案を添えて伝えます。",
     ],
   },
+  {
+    article: "第4条",
+    title: "体験の共有について",
+    items: [
+      "(1) 利用者がゲーム体験をSNS等で共有する場合、開発者をクレジットします。",
+      "(2) 利用者はクリアスクリーンショット等の共有時に、ハッシュタグを付けて応援します。",
+      "(3) 利用者はネタバレ的な内容の共有際には注意し、他のプレイヤーに配慮します。",
+      "(4) 利用者は友人や知人への口コミを通じて、本ゲームの認知拡大に協力します。",
+    ],
+  },
+  {
+    article: "第5条",
+    title: "ゲームプレイについて",
+    items: [
+      "(1) 利用者は本ゲームの難易度や結果に対し、冷静に対処します。",
+      "(2) 利用者は過度な時間投入を避け、適度な休息を心がけます。",
+      "(3) 利用者は本ゲームをプレイ中、他者の睡眠を妨害しないよう配慮します。",
+      "(4) 利用者は負けて悔しい場合でも、壁を殴ることなく再挑戦を誓います。",
+    ],
+  },
+  {
+    article: "第6条",
+    title: "個人情報の取扱いについて",
+    items: [
+      "(1) 利用者が個人情報を入力する場合、その情報の責任は利用者が負います。",
+      "(2) 利用者は他者の個人情報を無断で入力・共有しないと誓います。",
+      "(3) 利用者は本ゲーム内に入力した情報の削除要求を行うことができます。",
+      "(4) 開発者は利用者の個人情報を適切に保護し、第三者に開示しません。",
+    ],
+  },
+  {
+    article: "第7条",
+    title: "ゲームデータの扱いについて",
+    items: [
+      "(1) 利用者が成績やスコアをSNSで共有する場合、その責任は利用者が負います。",
+      "(2) 利用者のゲームデータは開発サーバーに保存される場合があります。",
+      "(3) 利用者はゲームデータの移行や削除をリクエストできます。",
+      "(4) 開発者はゲームデータの損失についての責任を負いません。",
+    ],
+  },
+  {
+    article: "第8条",
+    title: "不正行為について",
+    items: [
+      "(1) 利用者はゲーム内での不正行為（チート等）を行いません。",
+      "(2) 利用者は利用規約に違反する行為をしません。",
+      "(3) 開発者が不正を検知した場合、利用を制限することができます。",
+      "(4) 利用者は不正行為による処遇に異議を唱えないと誓います。",
+    ],
+  },
+  {
+    article: "第9条",
+    title: "知的財産権について",
+    items: [
+      "(1) 本ゲームの全著作権は開発者に帰属します。",
+      "(2) 利用者は本ゲームを無許可で複製・配布しません。",
+      "(3) 利用者は本ゲームのコードを逆解析・改変しません。",
+      "(4) 利用者による実況動画等での利用は、開発者をクレジットすれば認めます。",
+    ],
+  },
+  {
+    article: "第10条",
+    title: "損害賠償について",
+    items: [
+      "(1) 利用者は本ゲームの利用により発生した損害について、開発者を免責します。",
+      "(2) 本ゲームは現状のまま提供され、明示的な保証はありません。",
+      "(3) 利用者が本ゲーム利用時に受けた身体的・精神的損害の責任は負いません。",
+      "(4) 利用者はこれらの条件に同意し、ゲームプレイを開始します。",
+    ],
+  },
 ];
 
 export default function GameManager() {
@@ -290,7 +360,7 @@ export default function GameManager() {
               className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-rose-500 to-pink-500 px-8 py-3 text-lg font-bold text-white shadow-xl transition hover:from-rose-600 hover:to-pink-600 hover:shadow-2xl"
               style={{ animation: "pulse-button 2s ease-in-out infinite 0.6s" }}
             >
-              💔 ポートフォリオを見る
+              重大な問題が発生しました
             </button>
             <button
               onClick={resetGame}
@@ -380,17 +450,138 @@ export default function GameManager() {
       )}
 
       {state.status === "cleared" && (
-        <section className="rounded-3xl border border-emerald-200/30 bg-emerald-400/10 p-6 text-emerald-100">
-          <h2 className="text-xl font-semibold">ステージクリア</h2>
-          <p className="mt-2 text-sm text-emerald-100/80">
-            ここまでのミニゲームを突破しました。
-          </p>
-          <button
-            onClick={resetGame}
-            className="mt-6 inline-flex items-center justify-center rounded-full bg-emerald-300 px-6 py-3 text-sm font-semibold text-emerald-950 transition hover:bg-emerald-200"
-          >
-            もう一度遊ぶ
-          </button>
+        <section className="relative overflow-hidden rounded-3xl border-2 border-emerald-300 bg-gradient-to-b from-emerald-500/20 to-emerald-900/20 p-8 text-emerald-100 shadow-2xl"
+          style={{ animation: "clear-flash 0.6s ease-out" }}
+          onAnimationStart={() => {
+            playExplosionSound({ baseFrequency: 330, duration: 0.4, gain: 0.5 }).catch((err) => {
+              console.warn('Failed to play clear sound:', err);
+            });
+          }}
+        >
+          {/* 背景フラッシュ */}
+          <div
+            className="absolute inset-0 bg-white/40 pointer-events-none"
+            style={{ animation: "flash-fade 0.4s ease-out" }}
+          />
+          
+          {/* クリアパーティクル */}
+          {Array.from({ length: 50 }).map((_, i) => {
+            const randomTx = (Math.random() - 0.5) * 250;
+            const randomTy = (Math.random() - 0.5) * 250;
+            return (
+              <div
+                key={i}
+                className="particle absolute"
+                style={{
+                  left: `${Math.random() * 100}%`,
+                  top: `${Math.random() * 100}%`,
+                  width: `${Math.random() * 25 + 8}px`,
+                  height: `${Math.random() * 25 + 8}px`,
+                  backgroundColor: ["#4ade80", "#22c55e", "#16a34a", "#86efac", "#bbf7d0"][Math.floor(Math.random() * 5)],
+                  animation: `particle-celebr ${2.5 + Math.random() * 1.5}s ease-out forwards`,
+                  animationDelay: `${i * 0.03}s`,
+                  boxShadow: "0 0 15px rgba(74, 222, 128, 0.9)",
+                  '--tx': `${randomTx}px`,
+                  '--ty': `${randomTy}px`,
+                } as React.CSSProperties}
+              />
+            );
+          })}
+          
+          {/* メインテキスト */}
+          <div className="shake-container relative z-10 text-center">
+            <h2 
+              className="text-7xl font-black text-white drop-shadow-2xl" 
+              style={{ 
+                animation: "pulse-scale 0.6s ease-out",
+                textShadow: "0 0 25px rgba(74, 222, 128, 0.9), 0 0 50px rgba(34, 197, 94, 0.7)",
+              }}
+            >
+              🎉 CLEARED 🎉
+            </h2>
+            <p className="mt-6 text-2xl font-bold text-emerald-200" style={{ textShadow: "0 0 15px rgba(74, 222, 128, 0.7)" }}>
+              すべてのミニゲームを突破しました！
+            </p>
+          </div>
+
+          {/* ボタン */}
+          <div className="relative z-10 mt-10 flex flex-col gap-3">
+            <button
+              onClick={async () => {
+                try {
+                  await playExplosionSound({ baseFrequency: 440, duration: 0.3, gain: 0.3 });
+                } catch (err) {
+                  console.warn('Failed to play transition sound:', err);
+                } finally {
+                  window.location.href = 'https://portfolio-nine-green-82.vercel.app/';
+                }
+              }}
+              className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-emerald-400 to-green-500 px-8 py-4 text-lg font-bold text-white shadow-xl transition hover:from-emerald-500 hover:to-green-600 hover:shadow-2xl"
+              style={{ animation: "pulse-button 2s ease-in-out infinite 0.6s" }}
+            >
+              📱 ポートフォリオを見る
+            </button>
+            <button
+              onClick={resetGame}
+              className="inline-flex items-center justify-center rounded-full bg-emerald-300/40 px-6 py-2 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-300/60"
+            >
+              もう一度遊ぶ
+            </button>
+          </div>
+
+          <style>{`
+            @keyframes clear-flash {
+              0% { 
+                filter: brightness(2) saturate(1.5);
+                transform: scale(0.98);
+              }
+              100% { 
+                filter: brightness(1) saturate(1);
+                transform: scale(1);
+              }
+            }
+
+            @keyframes particle-celebr {
+              0% {
+                opacity: 1;
+                transform: translate(0, 0) rotate(0deg) scale(1);
+              }
+              100% {
+                opacity: 0;
+                transform: translate(var(--tx, 100px), var(--ty, 100px)) rotate(360deg) scale(0);
+              }
+            }
+
+            @keyframes pulse-scale {
+              0% {
+                opacity: 0;
+                transform: scale(0.5);
+              }
+              50% {
+                transform: scale(1.1);
+              }
+              100% {
+                opacity: 1;
+                transform: scale(1);
+              }
+            }
+
+            @keyframes flash-fade {
+              0% { opacity: 1; }
+              100% { opacity: 0; }
+            }
+
+            @keyframes pulse-button {
+              0%, 100% { 
+                transform: scale(1);
+                box-shadow: 0 0 20px rgba(74, 222, 128, 0.6);
+              }
+              50% { 
+                transform: scale(1.05);
+                box-shadow: 0 0 30px rgba(74, 222, 128, 0.8);
+              }
+            }
+          `}</style>
         </section>
       )}
 

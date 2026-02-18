@@ -119,13 +119,13 @@ export default function PortfolioBroken() {
               } catch (err) {
                 console.warn('Failed to play explosion sound:', err);
               } finally {
-                // 音声再生完了後にリダイレクト
+                // ホームに戻る
                 window.location.href = '/';
               }
             }}
             className="w-full px-6 py-3 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-semibold rounded-lg transition"
           >
-            ⚠️ 重大なエラーが発生しました
+            重大な問題が発生しました
           </button>
         </div>
 
