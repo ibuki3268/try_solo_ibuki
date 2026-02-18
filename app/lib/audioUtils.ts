@@ -22,82 +22,97 @@ function getAudioContext(): AudioContext {
 
 /**
  * 爆発音を再生（3連音）- Promise 対応版、タイムアウトトラッキング
+ * 実際の音声再生完了を待つPromiseを返す
  * @param options - 再生オプション
- * @returns Promise
+ * @returns Promise（音声再生完了時にresolve）
  */
-export async function playExplosionSound(options?: {
+export function playExplosionSound(options?: {
   baseFrequency?: number;
   duration?: number;
   gain?: number;
 }): Promise<void> {
-  try {
-    const ctx = getAudioContext();
-    
-    // AudioContext が suspend 状態の場合は再開
-    if (ctx.state === 'suspended') {
-      try {
-        await ctx.resume();
-      } catch (e) {
-        console.warn('Could not resume AudioContext:', e);
-      }
-    }
-    
-    const baseFreq = options?.baseFrequency ?? 220;
-    const duration = options?.duration ?? 0.4;
-    const gainValue = options?.gain ?? 0.3;
-
-    // 3つの爆発音を連続で再生
-    for (let i = 0; i < 3; i++) {
-      const timeoutId = setTimeout(() => {
-        try {
-          const osc = ctx.createOscillator();
-          const gainNode = ctx.createGain();
-
-          osc.type = 'square';
-          const startFreq = baseFreq - i * 60;
-          const endFreq = 20;
-
-          osc.frequency.setValueAtTime(startFreq, ctx.currentTime);
-          osc.frequency.exponentialRampToValueAtTime(
-            endFreq,
-            ctx.currentTime + duration
-          );
-
-          gainNode.gain.setValueAtTime(gainValue, ctx.currentTime);
-          gainNode.gain.exponentialRampToValueAtTime(
-            0.01,
-            ctx.currentTime + duration
-          );
-
-          osc.connect(gainNode);
-          gainNode.connect(ctx.destination);
-
-          osc.start(ctx.currentTime);
-          osc.stop(ctx.currentTime + duration);
-
-          // cleanup: ノードの削除を待つ
-          const cleanupTimeoutId = setTimeout(() => {
-            try {
-              osc.disconnect(gainNode);
-              gainNode.disconnect(ctx.destination);
-            } catch (e) {
-              // 既に削除されている場合
-            }
-            pendingTimeouts.delete(cleanupTimeoutId);
-          }, (duration * 1000) + 100);
-          
-          pendingTimeouts.add(cleanupTimeoutId);
-        } catch (e) {
-          console.error('Error playing explosion sound:', e);
-        }
-        pendingTimeouts.delete(timeoutId);
-      }, i * 200);
+  return new Promise((resolve) => {
+    try {
+      const ctx = getAudioContext();
       
-      pendingTimeouts.add(timeoutId);
+      // AudioContext が suspend 状態の場合は再開
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch((e) => {
+          console.warn('Could not resume AudioContext:', e);
+        });
+      }
+      
+      const baseFreq = options?.baseFrequency ?? 220;
+      const duration = options?.duration ?? 0.4;
+      const gainValue = options?.gain ?? 0.3;
+
+      // 3つの爆発音を連続で再生
+      for (let i = 0; i < 3; i++) {
+        const timeoutId = setTimeout(() => {
+          try {
+            const osc = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+
+            osc.type = 'square';
+            const startFreq = baseFreq - i * 60;
+            const endFreq = 20;
+
+            osc.frequency.setValueAtTime(startFreq, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(
+              endFreq,
+              ctx.currentTime + duration
+            );
+
+            gainNode.gain.setValueAtTime(gainValue, ctx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(
+              0.01,
+              ctx.currentTime + duration
+            );
+
+            osc.connect(gainNode);
+            gainNode.connect(ctx.destination);
+
+            osc.start(ctx.currentTime);
+            osc.stop(ctx.currentTime + duration);
+
+            // cleanup: ノードの削除を待つ
+            const cleanupTimeoutId = setTimeout(() => {
+              try {
+                osc.disconnect(gainNode);
+                gainNode.disconnect(ctx.destination);
+              } catch (e) {
+                // 既に削除されている場合
+              }
+              pendingTimeouts.delete(cleanupTimeoutId);
+            }, (duration * 1000) + 100);
+            
+            pendingTimeouts.add(cleanupTimeoutId);
+          } catch (e) {
+            console.error('Error playing explosion sound:', e);
+          }
+          pendingTimeouts.delete(timeoutId);
+        }, i * 200);
+        
+        pendingTimeouts.add(timeoutId);
+      }
+
+      // 最後の音声完了までの時間を計算
+      // 3番目の音声: 2 * 200ms 後に開始 + duration で完了
+      const totalPlaybackTime = (2 * 200) + (duration * 1000) + 100;
+      
+      // 実際の音声再生完了時にresolveする
+      const resolveTimeoutId = setTimeout(() => {
+        resolve();
+        pendingTimeouts.delete(resolveTimeoutId);
+      }, totalPlaybackTime);
+      
+      pendingTimeouts.add(resolveTimeoutId);
+    } catch (e) {
+      console.warn('Audio context unavailable:', e);
+      // エラー時は即座にresolve
+      resolve();
     }
-  } catch (e) {
-    console.warn('Audio context unavailable:', e);
-  }
+  });
 }
 
 /**

@@ -112,12 +112,16 @@ export default function PortfolioBroken() {
         {/* アクション */}
         <div className="space-y-3">
           <button
-            onClick={() => {
-              playExplosionSound().catch((err) => {
+            onClick={async () => {
+              try {
+                // 爆発音の再生完了を待つ
+                await playExplosionSound();
+              } catch (err) {
                 console.warn('Failed to play explosion sound:', err);
-              }).finally(() => {
+              } finally {
+                // 音声再生完了後にリダイレクト
                 window.location.href = '/';
-              });
+              }
             }}
             className="w-full px-6 py-3 bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white font-semibold rounded-lg transition"
           >
